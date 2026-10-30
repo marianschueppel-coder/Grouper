@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Neuromod-Grouper 2026 – Kodier- und Erlösrechner Neuromodulation</title>
+  <meta name="description" content="Privates, nicht-kommerzielles Projekt: Kodierhilfe und Erlösschätzung (aG-DRG 2026, AOP/EBM) für Neuromodulation und Radiofrequenzablation. Läuft vollständig im Browser." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f5f5a'/%3E%3Cpath d='M6 17h5l2-6 4 12 3-9 2 3h4' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M6 17h5l2-6 4 12 3-9 2 3h4"/></svg>
+        <div>
+          <h1>Neuromod-Grouper <span class="year">2026</span></h1>
+          <p class="tagline">Kodier- und Erlösrechner für Neuromodulation &amp; Radiofrequenzablation</p>
+        </div>
+      </div>
+      <span class="badge-private">Privates Projekt</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <aside class="disclaimer" role="note">
+      <strong>Hinweis:</strong> Privates, nicht-kommerzielles Projekt – kein zertifizierter DRG-Grouper und keine Abrechnungs- oder Rechtsberatung.
+      Ergebnisse sind unverbindliche Schätzungen (PCCL 0, ohne Nebendiagnosen). Maßgeblich sind die offiziellen Kataloge und der zertifizierte Grouper Ihres Hauses.
+      <span class="nowrap">Bitte keine Patientendaten eingeben</span> – alle Berechnungen laufen lokal in Ihrem Browser.
+    </aside>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" class="tab active" data-tab="stationaer" aria-selected="true">Stationär (aG-DRG)</button>
+      <button role="tab" class="tab" data-tab="ambulant" aria-selected="false">Ambulant (AOP / EBM)</button>
+      <button role="tab" class="tab" data-tab="wiederaufnahme" aria-selected="false">Wiederaufnahme</button>
+      <button role="tab" class="tab" data-tab="info" aria-selected="false">Methodik &amp; Quellen</button>
+    </nav>
+
+    <!-- ================= STATIONÄR ================= -->
+    <section id="tab-stationaer" class="panel active" role="tabpanel">
+      <div class="grid">
+        <div class="col-input">
+          <div class="card">
+            <label class="lbl" for="preset">Schnellauswahl Fallbeispiel</label>
+            <select id="preset"><option value="">– Beispiel laden –</option></select>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2><span class="step">1</span> Hauptdiagnose (ICD-10-GM)</h2>
+            </div>
+            <div id="hd-selected" class="selected-hd empty">Noch keine Hauptdiagnose gewählt</div>
+            <input id="hd-search" class="search" type="search" placeholder="Suchen: Code oder Text, z. B. M96.1, CRPS, Parkinson" autocomplete="off" />
+            <div id="hd-list" class="picklist" role="listbox" aria-label="Hauptdiagnosen"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2><span class="step">2</span> Prozeduren (OPS)</h2>
+              <button id="ops-clear" class="link-btn" type="button">Alle abwählen</button>
+            </div>
+            <div id="ops-selected" class="chips"></div>
+            <input id="ops-search" class="search" type="search" placeholder="Suchen: z. B. 5-039.e1, Spinalganglien, Wechsel" autocomplete="off" />
+            <div id="ops-list" class="picklist multi" aria-label="Prozeduren"></div>
+          </div>
+
+          <div class="card">
+            <h2><span class="step">3</span> Fallparameter</h2>
+            <div class="form-grid">
+              <label>Verweildauer (Belegungstage)
+                <input id="vwd" type="number" min="1" max="99" value="3" />
+              </label>
+              <label>Alter (Jahre)
+                <input id="alter" type="number" min="0" max="120" value="60" />
+              </label>
+              <label class="span2">Basisfallwert
+                <select id="bfw-select"></select>
+              </label>
+              <label id="bfw-custom-wrap" class="span2 hidden">Eigener Basisfallwert (€)
+                <input id="bfw-custom" type="number" step="0.01" min="0" />
+              </label>
+              <label>Pflegeentgeltwert (€/Tag)
+                <input id="pew" type="number" step="0.01" min="0" />
+              </label>
+              <label>ZE2026-61 Betrag (€)
+                <input id="ze61" type="number" step="0.01" min="0" placeholder="individuell" />
+              </label>
+              <label class="check span2"><input id="incl-pflege" type="checkbox" checked /> Pflegeerlös (tagesbezogen) einbeziehen</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-result">
+          <div class="card result" id="result" aria-live="polite">
+            <div class="result-empty">
+              <p>Hauptdiagnose und Prozedur wählen – das Ergebnis erscheint hier.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= AMBULANT ================= -->
+    <section id="tab-ambulant" class="panel" role="tabpanel">
+      <div class="grid">
+        <div class="col-input">
+          <div class="card">
+            <div class="card-head">
+              <h2>Prozeduren (OPS)</h2>
+              <button id="amb-clear" class="link-btn" type="button">Alle abwählen</button>
+            </div>
+            <div id="amb-selected" class="chips"></div>
+            <input id="amb-search" class="search" type="search" placeholder="Suchen: OPS-Kode oder Text" autocomplete="off" />
+            <div id="amb-list" class="picklist multi"></div>
+          </div>
+          <div class="card">
+            <h2>Parameter</h2>
+            <div class="form-grid">
+              <label class="span2">EBM-Punktwert (€ je Punkt)
+                <input id="ow" type="number" step="0.000001" min="0" />
+              </label>
+            </div>
+            <p class="muted small">Standard: bundeseinheitlicher Orientierungswert 2026. Regionale KV-Punktwerte können abweichen.</p>
+          </div>
+        </div>
+        <div class="col-result">
+          <div class="card result" id="amb-result">
+            <div class="result-empty"><p>Prozedur wählen, um AOP-Fähigkeit und EBM-Bewertung zu sehen.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= WIEDERAUFNAHME ================= -->
+    <section id="tab-wiederaufnahme" class="panel" role="tabpanel">
+      <div class="grid">
+        <div class="col-input">
+          <div class="card">
+            <h2>Fallzusammenführung prüfen (§ 2 FPV 2026)</h2>
+            <p class="muted small">Typischer Anwendungsfall: zweizeitige Implantation (Teststimulation, danach Stimulator) im selben Krankenhaus.</p>
+            <div class="form-grid">
+              <label>DRG Aufenthalt 1 <select id="wa-drg1"></select></label>
+              <label>DRG Aufenthalt 2 <select id="wa-drg2"></select></label>
+              <label>Aufnahme 1 <input id="wa-d1" type="date" /></label>
+              <label>Aufnahme 2 <input id="wa-d2" type="date" /></label>
+              <label class="check span2"><input id="wa-kompl" type="checkbox" /> Wiederaufnahme wegen einer Komplikation (in Verantwortung des Krankenhauses)</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-result">
+          <div class="card result" id="wa-result"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= INFO ================= -->
+    <section id="tab-info" class="panel prose" role="tabpanel">
+      <div class="card">
+        <h2>Was dieses Tool macht</h2>
+        <ul>
+          <li>Ordnet typische Konstellationen der <strong>Rückenmarkstimulation (SCS)</strong>, <strong>Spinalganglienstimulation (DRG)</strong>, <strong>Tiefen Hirnstimulation (THS)</strong> und <strong>Radiofrequenzablation</strong> einer aG-DRG 2026 zu – regelbasiert und mit Erklärung des Gruppierungswegs.</li>
+          <li>Berechnet den Erlös nach Fallpauschalenvereinbarung: Bewertungsrelation × Basisfallwert, Abschläge unter der unteren bzw. Zuschläge über der oberen Grenzverweildauer, tagesbezogener Pflegeerlös und Zusatzentgelte (ZE140, ZE141, ZE2026-61).</li>
+          <li>Zeigt für ambulante Eingriffe die AOP-Fähigkeit (§ 115b SGB V) und die EBM-OP-Leistung mit Bewertung.</li>
+          <li>Prüft vereinfacht, ob zwei Aufenthalte nach § 2 FPV zusammenzuführen sind.</li>
+        </ul>
+        <h2>Grenzen</h2>
+        <ul>
+          <li>Kein zertifizierter Grouper: Nebendiagnosen (PCCL), Alter &lt; 18 Jahre, Beatmung, Verlegungen, Belegabteilungen und Sonderfälle werden nicht berücksichtigt.</li>
+          <li>Nicht abgebildete Kombinationen werden als solche gekennzeichnet – es wird dann bewusst keine DRG geraten.</li>
+          <li>ZE2026-61 ist krankenhausindividuell zu vereinbaren und daher als Eingabefeld hinterlegt.</li>
+          <li>Ambulant: Implantat-/Sachkosten sind in der OP-Leistung nicht enthalten; deren Erstattung richtet sich nach AOP-Vertrag bzw. regionalen Vereinbarungen.</li>
+        </ul>
+        <h2>Datenschutz</h2>
+        <p>Die Seite ist eine statische Web-App ohne Server, Cookies, Tracking oder Analyse. Eingaben verlassen Ihren Browser nicht. Lediglich Ihre Parameter-Einstellungen (z. B. Basisfallwert) werden lokal im Browser gespeichert.</p>
+        <h2>Datenstand &amp; Quellen</h2>
+        <ul id="sources"></ul>
+        <h2>Haftungsausschluss</h2>
+        <p>Privates, nicht-kommerzielles Projekt ohne Verbindung zu Herstellern, Kostenträgern oder Krankenhäusern. Alle Angaben ohne Gewähr auf Richtigkeit und Vollständigkeit. Für Kodierung und Abrechnung sind ausschließlich die amtlichen Klassifikationen (BfArM), die Deutschen Kodierrichtlinien, der aG-DRG-Katalog (InEK) und der zertifizierte Grouper maßgeblich.</p>
+        <p class="muted small">Fehler gefunden? Gern als Issue im GitHub-Repository melden.</p>
+      </div>
+    </section>
+  </div>
+
+  <button id="mobile-bar" class="mobile-bar hidden" type="button"><span id="mobile-bar-text"></span><span class="mb-go">Ergebnis ↓</span></button>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Neuromod-Grouper · privates Projekt · Datenstand <span id="stand"></span></span>
+      <span>Keine Abrechnungsberatung · ohne Gewähr</span>
+    </div>
+  </footer>
+
+  <script type="module" src="assets/app.js"></script>
+</body>
+</html>
