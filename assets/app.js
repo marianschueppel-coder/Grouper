@@ -25,16 +25,39 @@ document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () 
   document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === `tab-${t.dataset.tab}`));
 }));
 
+// ---------- Aufklappbare Gruppen ----------
+const openGroups = { hd: new Set(), stat: new Set(), amb: new Set() };
+function renderGroups(container, key, items, q, isSel, renderItem, emptyMsg) {
+  const groups = [];
+  for (const it of items) {
+    let g = groups.find((x) => x.name === it.group);
+    if (!g) groups.push((g = { name: it.group, items: [] }));
+    g.items.push(it);
+  }
+  if (!groups.length) { container.innerHTML = `<div class="empty-list">${emptyMsg}</div>`; return; }
+  container.innerHTML = groups.map((g) => {
+    const nSel = g.items.filter(isSel).length;
+    const open = q || openGroups[key].has(g.name);
+    return `<details class="acc" data-group="${esc(g.name)}"${open ? " open" : ""}>
+      <summary><span class="acc-name">${esc(g.name)}</span>
+        ${nSel ? `<span class="acc-sel">${nSel} gewählt</span>` : ""}
+        <span class="acc-count">${g.items.length}</span></summary>
+      <div class="acc-body">${g.items.map(renderItem).join("")}</div>
+    </details>`;
+  }).join("");
+  container.querySelectorAll("details.acc").forEach((d) => d.addEventListener("toggle", () => {
+    if (q) return; // bei aktiver Suche Zustand nicht merken
+    d.open ? openGroups[key].add(d.dataset.group) : openGroups[key].delete(d.dataset.group);
+  }));
+}
+
 // ---------- Hauptdiagnose ----------
 function renderHdList() {
   const q = norm($("#hd-search").value.trim());
   const list = ICD.filter((i) => !q || norm(i.code).includes(q) || norm(i.text).includes(q) || norm(i.group).includes(q));
-  let html = "", grp = "";
-  for (const i of list) {
-    if (i.group !== grp) { grp = i.group; html += `<div class="pick-group">${esc(grp)}</div>`; }
-    html += `<button type="button" role="option" class="pick${state.hd === i.code ? " sel" : ""}" data-code="${i.code}"><span class="code">${i.code}</span><span>${esc(i.text)}</span></button>`;
-  }
-  $("#hd-list").innerHTML = html || `<div class="empty-list">Keine Treffer. Das Tool enthält nur typische Diagnosen der Neuromodulation.</div>`;
+  renderGroups($("#hd-list"), "hd", list, q, (i) => i.code === state.hd,
+    (i) => `<button type="button" role="option" class="pick${state.hd === i.code ? " sel" : ""}" data-code="${i.code}"><span class="code">${i.code}</span><span>${esc(i.text)}</span></button>`,
+    "Keine Treffer. Das Tool enthält nur typische Diagnosen der Neuromodulation.");
 }
 $("#hd-list").addEventListener("click", (e) => {
   const b = e.target.closest(".pick"); if (!b) return;
@@ -59,12 +82,9 @@ function opsTags(p, mode) {
 function renderOpsList(listSel, searchSel, set, filter, mode) {
   const q = norm($(searchSel).value.trim());
   const list = OPS.filter(filter).filter((p) => !q || norm(p.code).includes(q) || norm(p.text).includes(q) || norm(p.group).includes(q));
-  let html = "", grp = "";
-  for (const p of list) {
-    if (p.group !== grp) { grp = p.group; html += `<div class="pick-group">${esc(grp)}</div>`; }
-    html += `<button type="button" class="pick${set.has(p.code) ? " sel" : ""}" data-code="${p.code}" aria-pressed="${set.has(p.code)}"><span class="box"></span><span class="code">${p.code}</span><span>${esc(p.text)}${opsTags(p, mode)}</span></button>`;
-  }
-  $(listSel).innerHTML = html || `<div class="empty-list">Keine Treffer.</div>`;
+  renderGroups($(listSel), mode, list, q, (p) => set.has(p.code),
+    (p) => `<button type="button" class="pick${set.has(p.code) ? " sel" : ""}" data-code="${p.code}" aria-pressed="${set.has(p.code)}"><span class="box"></span><span class="code">${p.code}</span><span>${esc(p.text)}${opsTags(p, mode)}</span></button>`,
+    "Keine Treffer.");
 }
 function renderChips(sel, set, onRemove) {
   $(sel).innerHTML = [...set].map((c) => `<span class="chip">${c}<button type="button" data-code="${c}" aria-label="${c} entfernen">×</button></span>`).join("");
@@ -102,6 +122,8 @@ $("#preset").innerHTML += PRESETS.map((p) => `<option value="${p.id}">${esc(p.la
 $("#preset").addEventListener("change", (e) => {
   const p = PRESETS.find((x) => x.id === e.target.value); if (!p) return;
   state.hd = p.hd; state.ops = new Set(p.ops); $("#vwd").value = p.vwd;
+  openGroups.hd.add(ICD.find((i) => i.code === p.hd).group);
+  for (const c of p.ops) openGroups.stat.add(OPS.find((o) => o.code === c).group);
   $("#hd-search").value = ""; $("#ops-search").value = "";
   renderHdSelected(); renderHdList(); refreshStatOps(); compute();
 });
