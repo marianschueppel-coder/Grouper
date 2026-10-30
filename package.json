@@ -2,5 +2,6 @@
   "name": "neuromod-grouper",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node tests/grouper.test.mjs" }
+  "scripts": { "test": "node tests/grouper.test.mjs",
+    "build": "node scripts/build-standalone.mjs" }
 }

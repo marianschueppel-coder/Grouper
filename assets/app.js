@@ -248,9 +248,10 @@ function computeAmb() {
 
   out.innerHTML = `
     ${res.leading ? `<div class="drg-head"><div class="drg-code">${res.leading.ebm}</div><div class="drg-title">Führende OP-Leistung (höchste Bewertung)<br><strong>${eur(res.leading.euro)}</strong> bei ${br(ow, 4)} € je Punkt</div></div>` : `<div class="no-drg">Keine EBM-OP-Leistung hinterlegt</div>`}
+    ${res.uew ? `<table class="calc"><tr><td>Postoperative Überwachung (GOP ${res.uew.gop})<span class="sub">${res.uew.title} · ${res.uew.points.toLocaleString("de-DE")} Punkte · nur bei erbrachtem Leistungsinhalt</span></td><td>${eur(res.uew.euro)}</td></tr><tr class="total"><td>OP-Leistung + Überwachung</td><td>${eur(Math.round((res.leading.euro + res.uew.euro) * 100) / 100)}</td></tr></table>` : ""}
     <div class="section-title">Prozeduren</div>
     <table class="calc">${rows}</table>
-    <div class="alert info">Bei mehreren Eingriffen in einer Sitzung wird i. d. R. die höchstbewertete OP-Leistung abgerechnet, weitere Eingriffe ggf. über den Simultanzuschlag (GOP 31258). Postoperative Überwachung/Behandlung (z. B. 31505/31506, 31675/31676) und Anästhesie sind gesondert berechnungsfähig.</div>
+    <div class="alert info">Bei mehreren Eingriffen in einer Sitzung wird i. d. R. die höchstbewertete OP-Leistung abgerechnet, weitere Eingriffe ggf. über den Simultanzuschlag (GOP 31258). Postoperative Behandlungskomplexe und Anästhesie sind gesondert berechnungsfähig. Zuordnung OPS → Kategorie/GOP laut Anhang 2 zum EBM (Stand 01.07.2026).</div>
     <div class="alert warn">Implantat-/Sachkosten (Neurostimulator, Elektroden) sind in der OP-Leistung nicht enthalten. Erstattung nach AOP-Vertrag bzw. regionalen Vereinbarungen prüfen.</div>
     ${rfaBox}`;
 }

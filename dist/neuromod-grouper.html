@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Neuromod-Grouper 2026 – Kodier- und Erlösrechner Neuromodulation</title>
+  <meta name="description" content="Privates, nicht-kommerzielles Projekt: Kodierhilfe und Erlösschätzung (aG-DRG 2026, AOP/EBM) für Neuromodulation und Radiofrequenzablation. Läuft vollständig im Browser." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f5f5a'/%3E%3Cpath d='M6 17h5l2-6 4 12 3-9 2 3h4' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <style>
+:root {
+  --ink: #12232e;
+  --ink-2: #3c4f5a;
+  --muted: #6b7b84;
+  --bg: #f4f5f2;
+  --card: #ffffff;
+  --line: #e2e5e0;
+  --accent: #0f5f5a;
+  --accent-2: #13807a;
+  --accent-soft: #e5f2f0;
+  --warn: #8a5a00;
+  --warn-bg: #fff6e0;
+  --err: #a12d2d;
+  --err-bg: #fdecec;
+  --ok: #1d6b3a;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(18, 35, 46, .05), 0 4px 16px rgba(18, 35, 46, .04);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+.hidden { display: none !important; }
+.nowrap { white-space: nowrap; }
+.muted { color: var(--muted); }
+.small { font-size: .85rem; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Header */
+.site-header { background: var(--ink); color: #fff; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 18px; padding-bottom: 18px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.logo { width: 40px; height: 40px; flex: none; }
+.logo rect { fill: var(--accent-2); }
+.logo path { fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+h1 { margin: 0; font-size: 1.35rem; letter-spacing: -.01em; font-weight: 700; }
+h1 .year { font-weight: 400; opacity: .7; }
+.tagline { margin: 2px 0 0; font-size: .9rem; opacity: .75; }
+.badge-private { border: 1px solid rgba(255,255,255,.35); border-radius: 999px; padding: 4px 12px; font-size: .78rem; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
+
+.disclaimer { margin: 18px 0 8px; background: var(--warn-bg); border: 1px solid #f0dfb3; color: #5c4300; border-radius: var(--radius); padding: 12px 16px; font-size: .88rem; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin: 16px 0 16px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.tab { appearance: none; background: none; border: none; padding: 10px 14px; font: inherit; font-weight: 600; font-size: .95rem; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.panel { display: none; padding-bottom: 40px; }
+.panel.active { display: block; }
+
+/* Layout */
+.grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.col-input { display: flex; flex-direction: column; gap: 14px; }
+.col-result { position: sticky; top: 14px; }
+@media (max-width: 880px) {
+  .grid { grid-template-columns: 1fr; }
+  .col-result { position: static; }
+  .header-inner { flex-wrap: wrap; }
+}
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+.card h2 { font-size: 1rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: .78rem; font-weight: 700; }
+.link-btn { background: none; border: none; color: var(--accent); font: inherit; font-size: .85rem; cursor: pointer; padding: 0; }
+.link-btn:hover { text-decoration: underline; }
+
+/* Inputs */
+.lbl { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; }
+input, select { font: inherit; color: var(--ink); }
+.search, select, input[type=number], input[type=date] {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fff; font-size: .95rem;
+}
+.search:focus, select:focus, input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent-2); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid label { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; font-weight: 600; color: var(--ink-2); }
+.form-grid .span2 { grid-column: span 2; }
+.form-grid label.check { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; }
+@media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } .form-grid .span2 { grid-column: auto; } }
+
+/* Picklists */
+.picklist { margin-top: 8px; max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: 9px; }
+.pick-group { position: sticky; top: 0; background: #f8f9f7; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); z-index: 1; }
+.pick { display: grid; grid-template-columns: 78px 1fr; gap: 8px; width: 100%; text-align: left; background: #fff; border: none; border-bottom: 1px solid #f0f1ee; padding: 7px 10px; cursor: pointer; font: inherit; font-size: .88rem; color: var(--ink); }
+.pick:hover { background: #f6faf9; }
+.pick.sel { background: var(--accent-soft); }
+.pick .code { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.pick .tags { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.tag { font-size: .68rem; font-weight: 700; padding: 1px 6px; border-radius: 5px; background: #eef0ec; color: var(--ink-2); }
+.tag.ze { background: #e8eefc; color: #2b4a9a; }
+.tag.aop { background: #e7f4ea; color: var(--ok); }
+.picklist.multi .pick { grid-template-columns: 20px 78px 1fr; }
+.pick .box { width: 16px; height: 16px; border: 1.5px solid #b9c2bd; border-radius: 4px; margin-top: 2px; display: grid; place-items: center; }
+.pick.sel .box { background: var(--accent); border-color: var(--accent); }
+.pick.sel .box::after { content: ""; width: 8px; height: 4px; border: 2px solid #fff; border-top: none; border-right: none; transform: rotate(-45deg) translate(1px, -1px); }
+.empty-list { padding: 14px; color: var(--muted); font-size: .9rem; }
+
+.selected-hd { padding: 10px 12px; border-radius: 9px; background: var(--accent-soft); margin-bottom: 8px; font-size: .92rem; }
+.selected-hd.empty { background: #f4f5f2; color: var(--muted); }
+.selected-hd .code { font-weight: 700; color: var(--accent); margin-right: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; min-height: 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 4px 6px 4px 11px; font-size: .85rem; font-weight: 600; }
+.chip button { border: none; background: rgba(15,95,90,.12); color: var(--accent); border-radius: 50%; width: 20px; height: 20px; cursor: pointer; line-height: 1; font-size: .9rem; }
+
+/* Result */
+.result-empty { color: var(--muted); padding: 30px 6px; text-align: center; }
+.drg-head { display: flex; align-items: flex-start; gap: 14px; }
+.drg-code { font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em; color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
+.drg-title { font-size: .9rem; color: var(--ink-2); }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }
+.kpi { background: #f6f7f4; border-radius: 9px; padding: 8px 10px; }
+.kpi .k { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+.kpi .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+table.calc { width: 100%; border-collapse: collapse; font-size: .92rem; }
+table.calc td { padding: 7px 0; border-bottom: 1px solid #eef0ec; vertical-align: top; }
+table.calc td:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
+table.calc td .sub { display: block; font-size: .78rem; color: var(--muted); }
+table.calc tr.total td { border-bottom: none; border-top: 2px solid var(--ink); font-weight: 800; font-size: 1.05rem; padding-top: 10px; }
+table.calc tr.neg td:last-child { color: var(--err); }
+table.calc tr.pos td:last-child { color: var(--ok); }
+.section-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 700; margin: 18px 0 6px; }
+.steps { margin: 0; padding-left: 18px; font-size: .88rem; color: var(--ink-2); }
+.steps li { margin: 3px 0; }
+.alert { border-radius: 9px; padding: 9px 12px; font-size: .86rem; margin-top: 8px; }
+.alert.warn { background: var(--warn-bg); color: var(--warn); }
+.alert.err { background: var(--err-bg); color: var(--err); }
+.alert.info { background: #eef4fb; color: #24496f; }
+.no-drg { font-size: 1.1rem; font-weight: 700; color: var(--ink-2); }
+.actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.btn { appearance: none; border: 1px solid var(--line); background: #fff; border-radius: 9px; padding: 8px 12px; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; color: var(--ink); }
+.btn:hover { border-color: var(--accent-2); color: var(--accent); }
+.verdict { font-size: 1.25rem; font-weight: 800; margin-bottom: 6px; }
+.verdict.yes { color: var(--err); }
+.verdict.no { color: var(--ok); }
+
+.mobile-bar { display: none; }
+@media (max-width: 880px) {
+  .mobile-bar:not(.hidden) { display: flex; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 20; justify-content: space-between; align-items: center;
+    background: var(--ink); color: #fff; border: none; border-radius: 12px; padding: 12px 16px; font: inherit; font-weight: 700; box-shadow: 0 6px 24px rgba(0,0,0,.25); cursor: pointer; }
+  .mobile-bar .mb-go { font-weight: 500; opacity: .8; font-size: .88rem; }
+  body { padding-bottom: 70px; }
+}
+
+/* Prose */
+.prose .card { max-width: 860px; }
+.prose h2 { margin-top: 18px; }
+.prose h2:first-child { margin-top: 0; }
+.prose ul { padding-left: 20px; }
+.prose li { margin: 4px 0; }
+.prose a { color: var(--accent); }
+
+.site-footer { border-top: 1px solid var(--line); padding: 18px 0 28px; font-size: .8rem; color: var(--muted); }
+.site-footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .site-header { background: #fff; color: var(--ink); border-bottom: 1px solid #999; }
+  .logo rect { fill: #444; }
+  .tabs, .col-input, .actions, .site-footer, .badge-private, .mobile-bar { display: none !important; }
+  .grid { grid-template-columns: 1fr; }
+  .card { box-shadow: none; border-color: #bbb; }
+  .panel { display: none !important; }
+  .panel.active { display: block !important; }
+}
+
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M6 17h5l2-6 4 12 3-9 2 3h4"/></svg>
+        <div>
+          <h1>Neuromod-Grouper <span class="year">2026</span></h1>
+          <p class="tagline">Kodier- und Erlösrechner für Neuromodulation &amp; Radiofrequenzablation</p>
+        </div>
+      </div>
+      <span class="badge-private">Privates Projekt</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <aside class="disclaimer" role="note">
+      <strong>Hinweis:</strong> Privates, nicht-kommerzielles Projekt – kein zertifizierter DRG-Grouper und keine Abrechnungs- oder Rechtsberatung.
+      Ergebnisse sind unverbindliche Schätzungen (PCCL 0, ohne Nebendiagnosen). Maßgeblich sind die offiziellen Kataloge und der zertifizierte Grouper Ihres Hauses.
+      <span class="nowrap">Bitte keine Patientendaten eingeben</span> – alle Berechnungen laufen lokal in Ihrem Browser.
+    </aside>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" class="tab active" data-tab="stationaer" aria-selected="true">Stationär (aG-DRG)</button>
+      <button role="tab" class="tab" data-tab="ambulant" aria-selected="false">Ambulant (AOP / EBM)</button>
+      <button role="tab" class="tab" data-tab="wiederaufnahme" aria-selected="false">Wiederaufnahme</button>
+      <button role="tab" class="tab" data-tab="info" aria-selected="false">Methodik &amp; Quellen</button>
+    </nav>
+
+    <!-- ================= STATIONÄR ================= -->
+    <section id="tab-stationaer" class="panel active" role="tabpanel">
+      <div class="grid">
+        <div class="col-input">
+          <div class="card">
+            <label class="lbl" for="preset">Schnellauswahl Fallbeispiel</label>
+            <select id="preset"><option value="">– Beispiel laden –</option></select>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2><span class="step">1</span> Hauptdiagnose (ICD-10-GM)</h2>
+            </div>
+            <div id="hd-selected" class="selected-hd empty">Noch keine Hauptdiagnose gewählt</div>
+            <input id="hd-search" class="search" type="search" placeholder="Suchen: Code oder Text, z. B. M96.1, CRPS, Parkinson" autocomplete="off" />
+            <div id="hd-list" class="picklist" role="listbox" aria-label="Hauptdiagnosen"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2><span class="step">2</span> Prozeduren (OPS)</h2>
+              <button id="ops-clear" class="link-btn" type="button">Alle abwählen</button>
+            </div>
+            <div id="ops-selected" class="chips"></div>
+            <input id="ops-search" class="search" type="search" placeholder="Suchen: z. B. 5-039.e1, Spinalganglien, Wechsel" autocomplete="off" />
+            <div id="ops-list" class="picklist multi" aria-label="Prozeduren"></div>
+          </div>
+
+          <div class="card">
+            <h2><span class="step">3</span> Fallparameter</h2>
+            <div class="form-grid">
+              <label>Verweildauer (Belegungstage)
+                <input id="vwd" type="number" min="1" max="99" value="3" />
+              </label>
+              <label>Alter (Jahre)
+                <input id="alter" type="number" min="0" max="120" value="60" />
+              </label>
+              <label class="span2">Basisfallwert
+                <select id="bfw-select"></select>
+              </label>
+              <label id="bfw-custom-wrap" class="span2 hidden">Eigener Basisfallwert (€)
+                <input id="bfw-custom" type="number" step="0.01" min="0" />
+              </label>
+              <label>Pflegeentgeltwert (€/Tag)
+                <input id="pew" type="number" step="0.01" min="0" />
+              </label>
+              <label>ZE2026-61 Betrag (€)
+                <input id="ze61" type="number" step="0.01" min="0" placeholder="individuell" />
+              </label>
+              <label class="check span2"><input id="incl-pflege" type="checkbox" checked /> Pflegeerlös (tagesbezogen) einbeziehen</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-result">
+          <div class="card result" id="result" aria-live="polite">
+            <div class="result-empty">
+              <p>Hauptdiagnose und Prozedur wählen – das Ergebnis erscheint hier.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= AMBULANT ================= -->
+    <section id="tab-ambulant" class="panel" role="tabpanel">
+      <div class="grid">
+        <div class="col-input">
+          <div class="card">
+            <div class="card-head">
+              <h2>Prozeduren (OPS)</h2>
+              <button id="amb-clear" class="link-btn" type="button">Alle abwählen</button>
+            </div>
+            <div id="amb-selected" class="chips"></div>
+            <input id="amb-search" class="search" type="search" placeholder="Suchen: OPS-Kode oder Text" autocomplete="off" />
+            <div id="amb-list" class="picklist multi"></div>
+          </div>
+          <div class="card">
+            <h2>Parameter</h2>
+            <div class="form-grid">
+              <label class="span2">EBM-Punktwert (€ je Punkt)
+                <input id="ow" type="number" step="0.000001" min="0" />
+              </label>
+            </div>
+            <p class="muted small">Standard: bundeseinheitlicher Orientierungswert 2026. Regionale KV-Punktwerte können abweichen.</p>
+          </div>
+        </div>
+        <div class="col-result">
+          <div class="card result" id="amb-result">
+            <div class="result-empty"><p>Prozedur wählen, um AOP-Fähigkeit und EBM-Bewertung zu sehen.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= WIEDERAUFNAHME ================= -->
+    <section id="tab-wiederaufnahme" class="panel" role="tabpanel">
+      <div class="grid">
+        <div class="col-input">
+          <div class="card">
+            <h2>Fallzusammenführung prüfen (§ 2 FPV 2026)</h2>
+            <p class="muted small">Typischer Anwendungsfall: zweizeitige Implantation (Teststimulation, danach Stimulator) im selben Krankenhaus.</p>
+            <div class="form-grid">
+              <label>DRG Aufenthalt 1 <select id="wa-drg1"></select></label>
+              <label>DRG Aufenthalt 2 <select id="wa-drg2"></select></label>
+              <label>Aufnahme 1 <input id="wa-d1" type="date" /></label>
+              <label>Aufnahme 2 <input id="wa-d2" type="date" /></label>
+              <label class="check span2"><input id="wa-kompl" type="checkbox" /> Wiederaufnahme wegen einer Komplikation (in Verantwortung des Krankenhauses)</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-result">
+          <div class="card result" id="wa-result"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= INFO ================= -->
+    <section id="tab-info" class="panel prose" role="tabpanel">
+      <div class="card">
+        <h2>Was dieses Tool macht</h2>
+        <ul>
+          <li>Ordnet typische Konstellationen der <strong>Rückenmarkstimulation (SCS)</strong>, <strong>Spinalganglienstimulation (DRG)</strong>, <strong>Tiefen Hirnstimulation (THS)</strong> und <strong>Radiofrequenzablation</strong> einer aG-DRG 2026 zu – regelbasiert und mit Erklärung des Gruppierungswegs.</li>
+          <li>Berechnet den Erlös nach Fallpauschalenvereinbarung: Bewertungsrelation × Basisfallwert, Abschläge unter der unteren bzw. Zuschläge über der oberen Grenzverweildauer, tagesbezogener Pflegeerlös und Zusatzentgelte (ZE140, ZE141, ZE2026-61).</li>
+          <li>Zeigt für ambulante Eingriffe die AOP-Fähigkeit (§ 115b SGB V) und die EBM-OP-Leistung mit Bewertung.</li>
+          <li>Prüft vereinfacht, ob zwei Aufenthalte nach § 2 FPV zusammenzuführen sind.</li>
+        </ul>
+        <h2>Grenzen</h2>
+        <ul>
+          <li>Kein zertifizierter Grouper: Nebendiagnosen (PCCL), Alter &lt; 18 Jahre, Beatmung, Verlegungen, Belegabteilungen und Sonderfälle werden nicht berücksichtigt.</li>
+          <li>Nicht abgebildete Kombinationen werden als solche gekennzeichnet – es wird dann bewusst keine DRG geraten.</li>
+          <li>ZE2026-61 ist krankenhausindividuell zu vereinbaren und daher als Eingabefeld hinterlegt.</li>
+          <li>Ambulant: Implantat-/Sachkosten sind in der OP-Leistung nicht enthalten; deren Erstattung richtet sich nach AOP-Vertrag bzw. regionalen Vereinbarungen.</li>
+        </ul>
+        <h2>Datenschutz</h2>
+        <p>Die Seite ist eine statische Web-App ohne Server, Cookies, Tracking oder Analyse. Eingaben verlassen Ihren Browser nicht. Lediglich Ihre Parameter-Einstellungen (z. B. Basisfallwert) werden lokal im Browser gespeichert.</p>
+        <h2>Datenstand &amp; Quellen</h2>
+        <ul id="sources"></ul>
+        <h2>Haftungsausschluss</h2>
+        <p>Privates, nicht-kommerzielles Projekt ohne Verbindung zu Herstellern, Kostenträgern oder Krankenhäusern. Alle Angaben ohne Gewähr auf Richtigkeit und Vollständigkeit. Für Kodierung und Abrechnung sind ausschließlich die amtlichen Klassifikationen (BfArM), die Deutschen Kodierrichtlinien, der aG-DRG-Katalog (InEK) und der zertifizierte Grouper maßgeblich.</p>
+        <p class="muted small">Fehler gefunden? Gern als Issue im GitHub-Repository melden.</p>
+      </div>
+    </section>
+  </div>
+
+  <button id="mobile-bar" class="mobile-bar hidden" type="button"><span id="mobile-bar-text"></span><span class="mb-go">Ergebnis ↓</span></button>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Neuromod-Grouper · privates Projekt · Datenstand <span id="stand"></span></span>
+      <span>Keine Abrechnungsberatung · ohne Gewähr</span>
+    </div>
+  </footer>
+
+  <script>
+const __data = (() => {
+// Katalogdaten 2026 – Neuromodulation / minimalinvasive Schmerztherapie
+// Alle Werte aus öffentlich zugänglichen Quellen (siehe SOURCES). Ohne Gewähr.
+
+const META = {
+  year: 2026,
+  bbfw: 4570.64,            // Bundesbasisfallwert 2026 (Vereinbarung vom 27.03.2026)
+  pflegeentgeltwert: 250.0, // § 15 Abs. 2a KHEntgG (gilt ohne krankenhausindividuellen Wert)
+  orientierungswert: 0.127404, // EBM-Orientierungswert 2026 in Euro je Punkt
+  stand: "Oktober 2026",
+};
+
+// Landesbasisfallwerte 2026 (mit Ausgleichen), Quelle: vdek, Stand 28.05.2026
+const LBFW = [
+  { id: "BUND", name: "Bundesbasisfallwert 2026", value: 4570.64 },
+  { id: "BW", name: "Baden-Württemberg", value: 4576.64 },
+  { id: "BY", name: "Bayern", value: 4562.26 },
+  { id: "BE", name: "Berlin", value: 4576.10 },
+  { id: "BB", name: "Brandenburg", value: 4563.87 },
+  { id: "HB", name: "Bremen", value: 4577.83 },
+  { id: "HH", name: "Hamburg", value: 4563.89 },
+  { id: "HE", name: "Hessen", value: 4563.60 },
+  { id: "MV", name: "Mecklenburg-Vorpommern", value: 4570.65 },
+  { id: "NI", name: "Niedersachsen", value: 4563.13 },
+  { id: "NW", name: "Nordrhein-Westfalen", value: 4561.87 },
+  { id: "RP", name: "Rheinland-Pfalz", value: 4680.62 },
+  { id: "SL", name: "Saarland", value: 4599.55 },
+  { id: "SN", name: "Sachsen", value: 4560.10 },
+  { id: "ST", name: "Sachsen-Anhalt", value: 4562.06 },
+  { id: "SH", name: "Schleswig-Holstein", value: 4561.00 },
+  { id: "TH", name: "Thüringen", value: 4561.65 },
+];
+
+// aG-DRG-Katalog 2026, Teil a (Hauptabteilung) – Auszug
+// ugvd = erster Tag mit Abschlag, ogvd = erster Tag mit Zuschlag (jeweils Belegungstage)
+// *BR = Bewertungsrelation pro Tag; pflege = Pflegeerlös-Bewertungsrelation pro Tag
+const DRGS = {
+  B19A: { mdc: "01", part: "O", rg: 1.448, mvd: 2.8, ugvd: 1, ugvdBR: 0.076, ogvd: 6, ogvdBR: 0.080, verlBR: 0.084, pflege: 0.9215,
+    title: "Implantation, Revision und Entfernung von Neurostimulatoren und Neurostimulationselektroden bei Krankheiten und Störungen des Nervensystems mit Implantation oder Wechsel eines Neurostimulators" },
+  B19B: { mdc: "01", part: "O", rg: 1.527, mvd: 2.6, ugvd: 1, ugvdBR: 0.276, ogvd: 6, ogvdBR: 0.076, verlBR: 0.079, pflege: 0.7897,
+    title: "Implantation, Revision und Entfernung von Neurostimulatoren und Neurostimulationselektroden bei Krankheiten und Störungen des Nervensystems mit Implantation oder Wechsel eines permanenten oder temporären Elektrodensystems" },
+  B19C: { mdc: "01", part: "O", rg: 0.745, mvd: 2.7, ugvd: 1, ugvdBR: 0.231, ogvd: 6, ogvdBR: 0.072, verlBR: 0.075, pflege: 0.7605,
+    title: "Implantation, Revision und Entfernung von Neurostimulatoren und Neurostimulationselektroden bei Krankheiten und Störungen des Nervensystems ohne Implantation oder Wechsel von Neurostimulatoren und Elektrodensystemen" },
+  B20B: { mdc: "01", part: "O", rg: 2.569, mvd: 8.6, ugvd: 2, ugvdBR: 0.429, ogvd: 18, ogvdBR: 0.181, verlBR: null, pflege: 1.1914,
+    title: "Kraniotomie oder große Wirbelsäulen-Operation mit komplexer Prozedur, Alter > 17 Jahre oder ohne bestimmte komplexe Prozedur, mit komplizierenden Faktoren, Alter > 15 Jahre" },
+  B20D: { mdc: "01", part: "O", rg: 1.784, mvd: 6.5, ugvd: 1, ugvdBR: 0.600, ogvd: 16, ogvdBR: 0.157, verlBR: null, pflege: 1.1835,
+    title: "Kraniotomie oder große Wirbelsäulen-Operation mit komplexer Prozedur oder ohne komplexe Prozedur, Alter > 2 Jahre, mit komplexer Diagnose oder bestimmtem Eingriff bei Trigeminusneuralgie oder mit bestimmter Prozedur oder bei bösartiger Neubildung" },
+  B20E: { mdc: "01", part: "O", rg: 1.438, mvd: 6.7, ugvd: 1, ugvdBR: 0.412, ogvd: 16, ogvdBR: 0.137, verlBR: null, pflege: 1.1047,
+    title: "Kraniotomie oder große Wirbelsäulen-Operation ohne komplexe Prozedur, Alter > 2 Jahre, ohne komplexe Diagnose, ohne bestimmten Eingriff bei Trigeminusneuralgie, ohne bestimmte Prozedur, außer bei bösartiger Neubildung" },
+  B21A: { mdc: "01", part: "O", rg: 6.811, mvd: 9.4, ugvd: 2, ugvdBR: 0.328, ogvd: 16, ogvdBR: 0.105, verlBR: 0.095, pflege: 0.8389,
+    title: "Implantation eines Neurostimulators zur Hirnstimulation, Mehrelektrodensystem, mit Sondenimplantation" },
+  B21B: { mdc: "01", part: "O", rg: 3.533, mvd: 3.0, ugvd: 1, ugvdBR: 0.148, ogvd: 7, ogvdBR: 0.096, verlBR: 0.072, pflege: 1.0627,
+    title: "Implantation eines Neurostimulators zur Hirnstimulation, Mehrelektrodensystem, ohne Sondenimplantation" },
+  F21C: { mdc: "05", part: "O", rg: 1.988, mvd: 16.8, ugvd: 5, ugvdBR: 0.228, ogvd: 33, ogvdBR: 0.057, verlBR: 0.077, pflege: 0.7579,
+    title: "Andere OR-Prozeduren bei Kreislauferkrankungen ohne komplexen Eingriff, mit mäßig komplexem Eingriff oder anderer komplizierender Konstellation oder IntK > 196 / 184 / 368 Punkte" },
+  F21E: { mdc: "05", part: "O", rg: 0.912, mvd: 9.3, ugvd: 2, ugvdBR: 0.257, ogvd: 19, ogvdBR: 0.058, verlBR: 0.075, pflege: 0.7561,
+    title: "Andere OR-Prozeduren bei Kreislauferkrankungen ohne komplexen Eingriff, ohne komplizierende Konstellationen, ohne IntK > 196 / 184 / 368 Punkte, ohne mäßig komplexen Eingriff, ohne bestimmten anderen Eingriff" },
+  I19A: { mdc: "08", part: "O", rg: 1.210, mvd: 2.9, ugvd: 1, ugvdBR: 0.074, ogvd: 6, ogvdBR: 0.079, verlBR: 0.084, pflege: 0.9561,
+    title: "Implantation und Wechsel von Neurostimulatoren und Neurostimulationselektroden bei Krankheiten und Störungen an Muskel-Skelett-System und Bindegewebe ohne Implantation oder Wechsel eines permanenten Elektrodensystems" },
+  I19B: { mdc: "08", part: "O", rg: 1.577, mvd: 2.9, ugvd: 1, ugvdBR: 0.123, ogvd: 7, ogvdBR: 0.080, verlBR: 0.085, pflege: 0.8208,
+    title: "Implantation und Wechsel von Neurostimulatoren und Neurostimulationselektroden bei Krankheiten und Störungen an Muskel-Skelett-System und Bindegewebe mit Implantation oder Wechsel eines permanenten Elektrodensystems" },
+  I10F: { mdc: "08", part: "O", rg: 0.938, mvd: 4.3, ugvd: 1, ugvdBR: 0.347, ogvd: 9, ogvdBR: 0.066, verlBR: 0.077, pflege: 0.6985,
+    title: "Andere Eingriffe an der Wirbelsäule ohne mäßig komplexen Eingriff an der Wirbelsäule mit bestimmtem kleinen Eingriff und mehr als ein Belegungstag" },
+  I10G: { mdc: "08", part: "O", rg: 0.754, mvd: 4.7, ugvd: 1, ugvdBR: 0.225, ogvd: 12, ogvdBR: 0.071, verlBR: 0.084, pflege: 0.7047,
+    title: "Andere Eingriffe an der Wirbelsäule ohne mäßig komplexen Eingriff an der Wirbelsäule, ohne bestimmten kleinen Eingriff, ohne wenig komplexen Eingriff oder ein Belegungstag, mit anderem kleinen Eingriff" },
+  I10H: { mdc: "08", part: "O", rg: 0.578, mvd: 2.6, ugvd: 1, ugvdBR: 0.123, ogvd: 6, ogvdBR: 0.075, verlBR: 0.077, pflege: 0.8587,
+    title: "Andere Eingriffe an der Wirbelsäule ohne mäßig komplexen Eingriff, ohne bestimmten kleinen Eingriff, ohne anderen kleinen Eingriff" },
+  I24B: { mdc: "08", part: "O", rg: 0.503, mvd: 2.3, ugvd: 1, ugvdBR: 0.053, ogvd: 5, ogvdBR: 0.081, verlBR: 0.081, pflege: 1.0664,
+    title: "Arthroskopie oder andere Eingriffe an den Extremitäten oder Eingriffe am Weichteilgewebe ohne komplexen Eingriff, Alter > 17 Jahre" },
+  I68E: { mdc: "08", part: "M", rg: 0.445, mvd: 4.1, ugvd: 1, ugvdBR: 0.218, ogvd: 10, ogvdBR: 0.071, verlBR: 0.082, pflege: 0.6663,
+    title: "Nicht operativ behandelte Erkrankungen und Verletzungen im Wirbelsäulenbereich, mehr als ein Belegungstag oder andere Femurfraktur" },
+  I68F: { mdc: "08", part: "M", rg: 0.231, mvd: 1.0, ugvd: null, ugvdBR: null, ogvd: null, ogvdBR: null, verlBR: null, pflege: 1.1327,
+    title: "Nicht operativ behandelte Erkrankungen und Verletzungen im Wirbelsäulenbereich, ein Belegungstag oder Prellung am Oberschenkel" },
+  I23B: { mdc: "08", part: "O", rg: 0.768, mvd: 2.8, ugvd: 1, ugvdBR: 0.188, ogvd: 6, ogvdBR: 0.076, verlBR: 0.080, pflege: 0.9969,
+    title: "Andere kleine Eingriffe an Knochen und Weichteilen mit bestimmten kleinen Eingriffen an Knochen und Weichteilen, Alter > 17 Jahre oder ohne äußerst schwere oder schwere CC" },
+  B09Z: { mdc: "01", part: "O", rg: 0.977, mvd: 4.3, ugvd: 1, ugvdBR: 0.405, ogvd: 10, ogvdBR: 0.079, verlBR: 0.092, pflege: 0.9034,
+    title: "Andere Eingriffe am Schädel" },
+  "801E": { mdc: "24", part: "O", rg: 1.951, mvd: 15.1, ugvd: 4, ugvdBR: 0.286, ogvd: 29, ogvdBR: 0.066, verlBR: 0.089, pflege: 0.8656, wiederaufnahmeAusnahme: true,
+    title: "Ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose ohne komplizierende Konstellation, ohne hochkomplexe, komplexe oder bestimmte OR-Prozedur" },
+  "802C": { mdc: "24", part: "O", rg: 1.672, mvd: 9.2, ugvd: 2, ugvdBR: 0.301, ogvd: 23, ogvdBR: 0.069, verlBR: 0.089, pflege: 0.8951, wiederaufnahmeAusnahme: true,
+    title: "Andere nicht ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose ohne mäßig komplexe OR-Prozedur" },
+  "802D": { mdc: "24", part: "O", rg: 0.983, mvd: 6.4, ugvd: 1, ugvdBR: 0.546, ogvd: 17, ogvdBR: 0.067, verlBR: 0.083, pflege: 0.8844, wiederaufnahmeAusnahme: true,
+    title: "Wenig komplexe nicht ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose" },
+  "801C": { mdc: "24", part: "O", rg: 2.901, mvd: 19.1, ugvd: 5, ugvdBR: 0.329, ogvd: 36, ogvdBR: 0.072, verlBR: 0.098, pflege: 1.0098, wiederaufnahmeAusnahme: true,
+    title: "Ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose mit komplexer OR-Prozedur" },
+  "801D": { mdc: "24", part: "O", rg: 2.512, mvd: 17.2, ugvd: 5, ugvdBR: 0.294, ogvd: 32, ogvdBR: 0.072, verlBR: 0.097, pflege: 0.9600, wiederaufnahmeAusnahme: true,
+    title: "Ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose mit bestimmter OR-Prozedur oder mit intensivmedizinischer Komplexbehandlung > 196 / 184 / 368 Aufwandspunkte oder bestimmte nicht ausgedehnte OR-Prozedur mit neurologischer Komplexbehandlung des akuten Schlaganfalls" },
+};
+
+// Zusatzentgelte (Mehrkanalstimulatoren)
+const ZE = {
+  ZE138: { amount: 7726.60, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Einkanalstimulator, mit Sondenimplantation" },
+  ZE139: { amount: 5667.63, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Einkanalstimulator, ohne Sondenimplantation" },
+  ZE140: { amount: 12842.81, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Mehrkanalstimulator, nicht wiederaufladbar, mit Sondenimplantation" },
+  ZE141: { amount: 10396.50, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Mehrkanalstimulator, nicht wiederaufladbar, ohne Sondenimplantation" },
+  "ZE2026-61": { amount: null, title: "Neurostimulatoren zur Hirn- oder Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Mehrkanalstimulator, wiederaufladbar (krankenhausindividuell nach § 6 Abs. 1 KHEntgG)" },
+};
+
+// EBM-Gebührenordnungspositionen (Punkte)
+const EBM = {
+  "31251": { points: 1512, title: "Zentraler neurochirurgischer Eingriff der Kategorie P1" },
+  "31252": { points: 2057, title: "Zentraler neurochirurgischer Eingriff der Kategorie P2" },
+  "31253": { points: 2754, title: "Zentraler neurochirurgischer Eingriff der Kategorie P3" },
+  "31254": { points: 3583, title: "Zentraler neurochirurgischer Eingriff der Kategorie P4" },
+  "31255": { points: 4963, title: "Zentraler neurochirurgischer Eingriff der Kategorie P5" },
+  "31256": { points: 6645, title: "Zentraler neurochirurgischer Eingriff der Kategorie P6" },
+  "31504": { points: 694, title: "Postoperative Überwachung 4" },
+  "31505": { points: 977, title: "Postoperative Überwachung 5" },
+  "31506": { points: 1388, title: "Postoperative Überwachung 6" },
+  "34503": { points: 667, title: "Bildwandlergestützte Intervention(en) an der Wirbelsäule" },
+  "30700": { points: 394, title: "Grundpauschale schmerztherapeutischer Patient (QS-Vereinbarung Schmerztherapie)" },
+  "30702": { points: 498, title: "Zusatzpauschale schmerztherapeutische Versorgung (QS-Vereinbarung Schmerztherapie)" },
+  "16220": { points: 154, title: "Neurologisches Gespräch, Beratung, Erörterung, Abklärung, je vollendete 10 Minuten" },
+};
+
+// ---------------------------------------------------------------------------
+// ICD-10-GM 2026 – Auswahl typischer Hauptdiagnosen
+// mdc: "01" Nervensystem, "08" Muskel-Skelett, "05" Kreislauf, "801" = OR-Prozedur ohne Bezug zur HD
+// ---------------------------------------------------------------------------
+const ruecken5 = [
+  ["0", "Mehrere Lokalisationen der Wirbelsäule"], ["1", "Okzipito-Atlanto-Axialbereich"], ["2", "Zervikalbereich"],
+  ["3", "Zervikothorakalbereich"], ["4", "Thorakalbereich"], ["5", "Thorakolumbalbereich"], ["6", "Lumbalbereich"],
+  ["7", "Lumbosakralbereich"], ["8", "Sakral- und Sakrokokzygealbereich"], ["9", "Nicht näher bezeichnete Lokalisation"],
+];
+const extrem5 = [
+  ["0", "Mehrere Lokalisationen"], ["1", "Schulterregion"], ["2", "Oberarm"], ["3", "Unterarm"], ["4", "Hand"],
+  ["5", "Beckenregion und Oberschenkel"], ["6", "Unterschenkel"], ["7", "Knöchel und Fuß"], ["8", "Sonstige"], ["9", "Nicht näher bezeichnete Lokalisation"],
+];
+
+const icd = [];
+const add = (code, text, group, mdc) => icd.push({ code, text, group, mdc });
+
+// Rücken / Bein (SCS, DRG-Stim, RFA)
+add("M96.1", "Postlaminektomie-Syndrom, anderenorts nicht klassifiziert (FBSS)", "Rücken-/Beinschmerz", "08");
+for (const [d, t] of ruecken5) add(`M54.0${d}`, `Pannikulitis in der Nacken- und Rückenregion: ${t}`, "Rücken-/Beinschmerz", Number(d) <= 2 ? "801" : "08");
+for (const [d, t] of ruecken5) add(`M54.1${d}`, `Radikulopathie: ${t}`, "Rücken-/Beinschmerz", "08");
+add("M54.2", "Zervikalneuralgie", "Rücken-/Beinschmerz", "08");
+add("M54.3", "Ischialgie", "Rücken-/Beinschmerz", "08");
+add("M54.4", "Lumboischialgie", "Rücken-/Beinschmerz", "08");
+add("M54.5", "Kreuzschmerz", "Rücken-/Beinschmerz", "08");
+add("M54.6", "Schmerzen im Bereich der Brustwirbelsäule", "Rücken-/Beinschmerz", "08");
+for (const [d, t] of ruecken5) add(`M54.8${d}`, `Sonstige Rückenschmerzen: ${t}`, "Rücken-/Beinschmerz", "08");
+for (const [d, t] of ruecken5) add(`M54.9${d}`, `Rückenschmerzen, nicht näher bezeichnet: ${t}`, "Rücken-/Beinschmerz", "08");
+add("M53.0", "Zervikozephales Syndrom", "Rücken-/Beinschmerz", "08");
+
+// Neuralgien / Extremitätenschmerz
+for (const [d, t] of extrem5) add(`M79.2${d}`, `Neuralgie und Neuritis, nicht näher bezeichnet: ${t}`, "Neuralgie / Extremitätenschmerz", d === "5" ? "08" : "01");
+add("M79.65", "Schmerzen in den Extremitäten: Beckenregion und Oberschenkel (z. B. Leiste)", "Neuralgie / Extremitätenschmerz", "08");
+add("M79.66", "Schmerzen in den Extremitäten: Unterschenkel (z. B. Knie)", "Neuralgie / Extremitätenschmerz", "08");
+add("M79.67", "Schmerzen in den Extremitäten: Knöchel und Fuß", "Neuralgie / Extremitätenschmerz", "08");
+
+// Polyneuropathien
+add("G62.0", "Arzneimittelinduzierte Polyneuropathie", "Polyneuropathie", "01");
+add("G62.1", "Alkohol-Polyneuropathie", "Polyneuropathie", "01");
+add("G62.2", "Polyneuropathie durch sonstige toxische Agenzien", "Polyneuropathie", "01");
+add("G62.80", "Critical-illness-Polyneuropathie", "Polyneuropathie", "01");
+
+// CRPS / Phantomschmerz
+add("G90.50", "Komplexes regionales Schmerzsyndrom der oberen Extremität, Typ I", "CRPS / Phantomschmerz", "01");
+add("G90.51", "Komplexes regionales Schmerzsyndrom der unteren Extremität, Typ I", "CRPS / Phantomschmerz", "01");
+add("G90.59", "Komplexes regionales Schmerzsyndrom, Typ I, Lokalisation nicht näher bezeichnet", "CRPS / Phantomschmerz", "01");
+add("G90.60", "Komplexes regionales Schmerzsyndrom der oberen Extremität, Typ II", "CRPS / Phantomschmerz", "01");
+add("G90.61", "Komplexes regionales Schmerzsyndrom der unteren Extremität, Typ II", "CRPS / Phantomschmerz", "01");
+add("G90.69", "Komplexes regionales Schmerzsyndrom, Typ II, Lokalisation nicht näher bezeichnet", "CRPS / Phantomschmerz", "01");
+add("G54.6", "Phantomschmerz", "CRPS / Phantomschmerz", "01");
+
+// PAVK / Angina pectoris
+add("I70.22", "Atherosklerose der Extremitätenarterien: Becken-Bein-Typ, mit belastungsinduziertem Ischämieschmerz, Gehstrecke < 200 m", "PAVK / Angina pectoris", "05");
+add("I70.23", "Atherosklerose der Extremitätenarterien: Becken-Bein-Typ, mit Ruheschmerz", "PAVK / Angina pectoris", "05");
+add("I70.24", "Atherosklerose der Extremitätenarterien: Becken-Bein-Typ, mit Ulzeration", "PAVK / Angina pectoris", "05");
+add("I70.25", "Atherosklerose der Extremitätenarterien: Becken-Bein-Typ, mit Gangrän", "PAVK / Angina pectoris", "05");
+add("I70.26", "Atherosklerose der Extremitätenarterien: Schulter-Arm-Typ, alle Stadien", "PAVK / Angina pectoris", "05");
+add("I73.9", "Periphere Gefäßkrankheit, nicht näher bezeichnet", "PAVK / Angina pectoris", "05");
+add("I20.1", "Angina pectoris mit nachgewiesenem Koronarspasmus", "PAVK / Angina pectoris", "05");
+add("I20.8", "Sonstige Formen der Angina pectoris", "PAVK / Angina pectoris", "05");
+add("I20.9", "Angina pectoris, nicht näher bezeichnet", "PAVK / Angina pectoris", "05");
+
+// Bewegungsstörungen (THS)
+add("G20.00", "Primäres Parkinson-Syndrom mit fehlender oder geringer Beeinträchtigung: Ohne Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G20.01", "Primäres Parkinson-Syndrom mit fehlender oder geringer Beeinträchtigung: Mit Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G20.10", "Primäres Parkinson-Syndrom mit mäßiger bis schwerer Beeinträchtigung: Ohne Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G20.11", "Primäres Parkinson-Syndrom mit mäßiger bis schwerer Beeinträchtigung: Mit Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G20.20", "Primäres Parkinson-Syndrom mit schwerster Beeinträchtigung: Ohne Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G20.21", "Primäres Parkinson-Syndrom mit schwerster Beeinträchtigung: Mit Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G20.90", "Primäres Parkinson-Syndrom, nicht näher bezeichnet: Ohne Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G20.91", "Primäres Parkinson-Syndrom, nicht näher bezeichnet: Mit Wirkungsfluktuation", "Bewegungsstörungen (THS)", "01");
+add("G24.0", "Arzneimittelinduzierte Dystonie", "Bewegungsstörungen (THS)", "01");
+add("G24.1", "Idiopathische familiäre Dystonie", "Bewegungsstörungen (THS)", "01");
+add("G24.2", "Idiopathische nichtfamiliäre Dystonie", "Bewegungsstörungen (THS)", "01");
+add("G24.3", "Torticollis spasticus", "Bewegungsstörungen (THS)", "01");
+add("G24.4", "Idiopathische orofaziale Dystonie", "Bewegungsstörungen (THS)", "01");
+add("G24.5", "Blepharospasmus", "Bewegungsstörungen (THS)", "01");
+add("G24.8", "Sonstige Dystonie", "Bewegungsstörungen (THS)", "01");
+add("G24.9", "Dystonie, nicht näher bezeichnet", "Bewegungsstörungen (THS)", "01");
+add("G25.0", "Essentieller Tremor", "Bewegungsstörungen (THS)", "01");
+add("G25.1", "Arzneimittelinduzierter Tremor", "Bewegungsstörungen (THS)", "01");
+add("G25.2", "Sonstige näher bezeichnete Tremorformen", "Bewegungsstörungen (THS)", "01");
+add("G25.3", "Myoklonus", "Bewegungsstörungen (THS)", "01");
+add("G25.4", "Arzneimittelinduzierte Chorea", "Bewegungsstörungen (THS)", "01");
+add("G25.5", "Sonstige Chorea", "Bewegungsstörungen (THS)", "01");
+add("G25.6", "Arzneimittelinduzierte Tics und sonstige Tics organischen Ursprungs", "Bewegungsstörungen (THS)", "01");
+add("G25.80", "Periodische Beinbewegungen im Schlaf", "Bewegungsstörungen (THS)", "01");
+add("G25.81", "Syndrom der unruhigen Beine [Restless-Legs-Syndrom]", "Bewegungsstörungen (THS)", "01");
+add("G25.88", "Sonstige näher bezeichnete extrapyramidale Krankheiten und Bewegungsstörungen", "Bewegungsstörungen (THS)", "01");
+add("G25.9", "Extrapyramidale Krankheit oder Bewegungsstörung, nicht näher bezeichnet", "Bewegungsstörungen (THS)", "01");
+
+// Komplikation (Revisionen)
+add("T85.1", "Mechanische Komplikation durch einen implantierten elektronischen Stimulator des Nervensystems", "Komplikation / Revision", "01");
+
+// Weitere (Radiofrequenzablation)
+add("G50.0", "Trigeminusneuralgie", "Weitere (RFA)", "01");
+add("G56.9", "Mononeuropathie der oberen Extremität, nicht näher bezeichnet", "Weitere (RFA)", "01");
+add("G57.6", "Läsion des N. plantaris (Morton-Neuralgie)", "Weitere (RFA)", "01");
+add("G57.8", "Sonstige Mononeuropathien der unteren Extremität", "Weitere (RFA)", "01");
+add("G57.9", "Mononeuropathie der unteren Extremität, nicht näher bezeichnet", "Weitere (RFA)", "01");
+add("M18.1", "Sonstige primäre Rhizarthrose", "Weitere (RFA)", "08");
+add("M20.2", "Hallux rigidus", "Weitere (RFA)", "08");
+
+const ICD = icd;
+
+// ---------------------------------------------------------------------------
+// OPS 2026 – Auswahl
+// fam: Prozedurfamilie für die Gruppierungslogik
+// aop: im AOP-Katalog (§ 115b SGB V) enthalten; ebm: OP-GOP laut Anhang 2 EBM
+// ---------------------------------------------------------------------------
+const ops = [];
+const o = (code, text, group, fam, extra = {}) => ops.push({ code, text, group, fam, ...extra });
+
+// SCS – Elektroden (Kategorie/EBM/§115b laut KBV Anhang 2 zum EBM, Stand 01.07.2026)
+o("5-039.32", "Implantation einer temporären Elektrode zur epiduralen Teststimulation", "SCS – Elektroden", "leadTemp", { aop: true, ebm: "31255" });
+o("5-039.33", "Implantation mehrerer temporärer Elektroden zur epiduralen Teststimulation", "SCS – Elektroden", "leadTemp", { aop: true, ebm: "31256" });
+o("5-039.34", "Implantation oder Wechsel einer permanenten Elektrode zur epiduralen Dauerstimulation, perkutan", "SCS – Elektroden", "leadPerm", { aop: true, ebm: "31255" });
+o("5-039.35", "Implantation oder Wechsel mehrerer permanenter Elektroden zur epiduralen Dauerstimulation, perkutan", "SCS – Elektroden", "leadPerm", { aop: true, ebm: "31256" });
+o("5-039.36", "Implantation oder Wechsel einer permanenten Elektrode (Plattenelektrode) zur epiduralen Dauerstimulation, offen chirurgisch", "SCS – Elektroden", "leadPerm", { ebm: "31255" });
+o("5-039.37", "Implantation oder Wechsel mehrerer permanenter Elektroden (Plattenelektrode) zur epiduralen Dauerstimulation, offen chirurgisch", "SCS – Elektroden", "leadPerm", { ebm: "31256" });
+o("5-039.39", "Implantation oder Wechsel einer permanenten Elektrode zur epiduralen Dauerstimulation mit extrakorporalem Neurostimulator", "SCS – Elektroden", "other", { aop: true, ebm: "31255", ambulantOnly: true });
+// SCS – Neurostimulator
+o("5-039.e1", "Implantation oder Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimWithLead", { aop: true, ebm: "31256", ze: "ZE140" });
+o("5-039.e2", "Implantation oder Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "SCS – Neurostimulator", "stimWithLead", { aop: true, ebm: "31256", ze: "ZE2026-61" });
+o("5-039.e0", "Implantation oder Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimWithLead", { aop: true, ebm: "31255", ze: "ZE138" });
+o("5-039.n1", "Implantation eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE141" });
+o("5-039.n2", "Implantation eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE2026-61" });
+o("5-039.n0", "Implantation eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Implantation einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE139" });
+o("5-039.f1", "Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE141" });
+o("5-039.f2", "Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE2026-61" });
+o("5-039.f0", "Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE139" });
+// SCS – Revision / Entfernung
+o("5-039.b", "Revision von Neurostimulatoren zur epiduralen Rückenmarkstimulation oder zur Vorderwurzelstimulation", "Revision / Entfernung (spinal)", "revStim", { ebm: "31254" });
+o("5-039.c0", "Revision von Elektroden: Eine epidurale Stabelektrode", "Revision / Entfernung (spinal)", "revLead", { ebm: "31253" });
+o("5-039.c1", "Revision von Elektroden: Mehrere epidurale Stabelektroden", "Revision / Entfernung (spinal)", "revLead", { ebm: "31254" });
+o("5-039.c2", "Revision von Elektroden: Eine epidurale Plattenelektrode", "Revision / Entfernung (spinal)", "revLead", { ebm: "31253" });
+o("5-039.c3", "Revision von Elektroden: Mehrere epidurale Plattenelektroden", "Revision / Entfernung (spinal)", "revLead", { ebm: "31254" });
+o("5-039.a2", "Entfernung von Elektroden: Eine epidurale Stabelektrode", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31251", rm: "stab" });
+o("5-039.a3", "Entfernung von Elektroden: Mehrere epidurale Stabelektroden", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31252", rm: "stabMulti" });
+o("5-039.a4", "Entfernung von Elektroden: Eine epidurale Plattenelektrode", "Revision / Entfernung (spinal)", "removal", { ebm: "31251", rm: "platte" });
+o("5-039.a5", "Entfernung von Elektroden: Mehrere epidurale Plattenelektroden", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31252", rm: "platteMulti" });
+o("5-039.d", "Entfernung von Neurostimulatoren zur epiduralen Rückenmarkstimulation oder zur Vorderwurzelstimulation", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31254", rm: "ipg" });
+o("5-039.p", "Implantation eines Neurostimulators zur Vorderwurzelstimulation ohne Implantation einer subduralen Elektrode", "Revision / Entfernung (spinal)", "other", { aop: true, ebm: "31252", ambulantOnly: true });
+// DRG-Stimulation (Spinalganglien)
+o("5-039.j0", "Implantation oder Wechsel von Neurostimulationselektroden zur Stimulation von Spinalganglien: Eine Elektrode zur Ganglienstimulation", "Spinalganglien-Stimulation (DRG)", "leadPerm", { ebm: "31252" });
+o("5-039.j1", "Implantation oder Wechsel von Neurostimulationselektroden zur Stimulation von Spinalganglien: Mehrere Elektroden zur Ganglienstimulation", "Spinalganglien-Stimulation (DRG)", "leadPerm", { ebm: "31253" });
+o("5-039.k1", "Implantation oder Wechsel eines Neurostimulators zur Stimulation von Spinalganglien mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimWithLead", { ebm: "31251", ze: "ZE140" });
+o("5-039.k0", "Implantation oder Wechsel eines Neurostimulators zur Stimulation von Spinalganglien mit Implantation oder Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimWithLead", { ebm: "31251", ze: "ZE138" });
+o("5-039.q1", "Implantation eines Neurostimulators zur Stimulation von Spinalganglien ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE141" });
+o("5-039.q0", "Implantation eines Neurostimulators zur Stimulation von Spinalganglien ohne Implantation einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE139" });
+o("5-039.m1", "Wechsel eines Neurostimulators zur Stimulation von Spinalganglien ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31251", ze: "ZE141" });
+o("5-039.m0", "Wechsel eines Neurostimulators zur Stimulation von Spinalganglien ohne Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31251", ze: "ZE139" });
+o("5-039.c6", "Revision von Elektroden: Spinalganglion, eine Elektrode", "Spinalganglien-Stimulation (DRG)", "revLead", { ebm: "31252" });
+o("5-039.c7", "Revision von Elektroden: Spinalganglion, mehrere Elektroden", "Spinalganglien-Stimulation (DRG)", "revLead", { ebm: "31253" });
+o("5-039.a8", "Entfernung von Elektroden: Eine Elektrode zur Spinalganglienstimulation", "Spinalganglien-Stimulation (DRG)", "removal", { ebm: "31251", rm: "drg" });
+o("5-039.a9", "Entfernung von Elektroden: Mehrere Elektroden zur Spinalganglienstimulation", "Spinalganglien-Stimulation (DRG)", "removal", { ebm: "31251", rm: "drg" });
+o("5-039.r", "Entfernung eines Neurostimulators zur Spinalganglienstimulation", "Spinalganglien-Stimulation (DRG)", "removal", { ebm: "31251", rm: "drg" });
+// Tiefe Hirnstimulation
+o("5-029.f", "Implantation von Knochenankern zur Vorbereitung auf die stereotaktische Einführung von Stimulationselektroden", "Tiefe Hirnstimulation (THS)", "thsAnchor");
+o("5-029.g", "Entfernung von Knochenankern", "Tiefe Hirnstimulation (THS)", "thsRemoveLead");
+o("5-014.92", "Implantation oder Wechsel von intrazerebralen Elektroden: Implantation oder Wechsel einer permanenten Elektrode zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsLead");
+o("5-014.93", "Implantation oder Wechsel von intrazerebralen Elektroden: Implantation oder Wechsel mehrerer permanenter Elektroden zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsLead");
+o("5-014.b0", "Revision von intrazerebralen Elektroden: Eine permanente Elektrode zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsRevLead");
+o("5-014.b1", "Revision von intrazerebralen Elektroden: Mehrere permanente Elektroden zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsRevLead");
+o("5-028.91", "Implantation oder Wechsel eines Neurostimulators zur Hirnstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Tiefe Hirnstimulation (THS)", "thsStimWithLead");
+o("5-028.92", "Implantation oder Wechsel eines Neurostimulators zur Hirnstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "Tiefe Hirnstimulation (THS)", "thsStimWithLead", { ze: "ZE2026-61" });
+o("5-028.a1", "Wechsel eines Neurostimulators zur Hirnstimulation ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Tiefe Hirnstimulation (THS)", "thsStimNoLead");
+o("5-028.a2", "Wechsel eines Neurostimulators zur Hirnstimulation ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "Tiefe Hirnstimulation (THS)", "thsStimNoLead", { ze: "ZE2026-61" });
+o("5-028.c1", "Implantation eines Neurostimulators zur Hirnstimulation ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Tiefe Hirnstimulation (THS)", "thsStimNoLead");
+o("5-028.c2", "Implantation eines Neurostimulators zur Hirnstimulation ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "Tiefe Hirnstimulation (THS)", "thsStimNoLead", { ze: "ZE2026-61" });
+o("5-028.3", "Revision eines Neurostimulators zur Hirnstimulation", "Tiefe Hirnstimulation (THS)", "thsRevStim");
+o("5-028.5", "Revision einer permanenten Neurostimulationselektrode zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsRevLead");
+o("5-028.6", "Entfernung eines Neurostimulators zur Hirnstimulation", "Tiefe Hirnstimulation (THS)", "thsRemoveStim", { ebm: "31251" });
+o("5-028.7", "Entfernung einer Neurostimulationselektrode", "Tiefe Hirnstimulation (THS)", "thsRemoveLead");
+// Nachkontrolle
+o("8-631.0", "Nachprogrammierung eines implantierten Neurostimulators zur Hirnstimulation", "Nachkontrolle", "followup");
+o("8-631.10", "Nachprogrammierung eines Neurostimulators zur Rückenmarkstimulation: Ohne pharmakologische Anpassung", "Nachkontrolle", "followup");
+o("8-631.11", "Nachprogrammierung eines Neurostimulators zur Rückenmarkstimulation: Mit pharmakologischer Anpassung", "Nachkontrolle", "followup");
+o("8-631.20", "Nachprogrammierung eines Neurostimulators zur peripheren Nervenstimulation: Ohne pharmakologische Anpassung", "Nachkontrolle", "followup");
+o("8-631.21", "Nachprogrammierung eines Neurostimulators zur peripheren Nervenstimulation: Mit pharmakologischer Anpassung", "Nachkontrolle", "followup");
+// Radiofrequenzablation / minimalinvasive Schmerztherapie
+o("5-83a.00", "Facetten-Thermokoagulation oder Facetten-Kryodenervation: 1 Segment", "Radiofrequenzablation (RFA)", "rfaFacet");
+o("5-83a.01", "Facetten-Thermokoagulation oder Facetten-Kryodenervation: 2 Segmente", "Radiofrequenzablation (RFA)", "rfaFacet");
+o("5-83a.02", "Facetten-Thermokoagulation oder Facetten-Kryodenervation: 3 oder mehr Segmente", "Radiofrequenzablation (RFA)", "rfaFacet");
+o("5-83a.2", "Thermokoagulation oder Kryodenervation des Iliosakralgelenkes", "Radiofrequenzablation (RFA)", "rfaFacet");
+o("5-830.2", "Inzision von erkranktem Knochen- und Gelenkgewebe der Wirbelsäule: Facettendenervation (z. B. endoskopisch)", "Radiofrequenzablation (RFA)", "rfaEndo");
+o("5-859.37", "Andere Operationen an Muskeln, Sehnen, Faszien und Schleimbeuteln: Perkutane Destruktion von Weichteilen durch Thermoablation, Leisten- und Genitalregion und Gesäß", "Radiofrequenzablation (RFA)", "rfaSoft");
+// Zugänge (beeinflussen die Gruppierung hier nicht)
+const seg = [["0", "1 Segment"], ["1", "2 Segmente"], ["2", "Mehr als 2 Segmente"]];
+for (const [d, t] of seg) o(`5-031.0${d}`, `Zugang zur Brustwirbelsäule: BWS, dorsal: ${t}`, "Zugänge", "access");
+for (const [d, t] of seg) o(`5-031.1${d}`, `Zugang zur Brustwirbelsäule: Laminotomie BWS: ${t}`, "Zugänge", "access");
+for (const [d, t] of seg) o(`5-031.3${d}`, `Zugang zur Brustwirbelsäule: Laminektomie BWS: ${t}`, "Zugänge", "access");
+for (const [d, t] of seg) o(`5-032.0${d}`, `Zugang zur Lendenwirbelsäule: LWS, dorsal: ${t}`, "Zugänge", "access");
+for (const [d, t] of seg) o(`5-032.2${d}`, `Zugang zur Lendenwirbelsäule: Laminotomie LWS: ${t}`, "Zugänge", "access");
+for (const [d, t] of seg) o(`5-032.4${d}`, `Zugang zur Lendenwirbelsäule: Laminektomie LWS: ${t}`, "Zugänge", "access");
+
+const OPS = ops;
+
+// Fertige Fallbeispiele (Schnellauswahl)
+const PRESETS = [
+  { id: "scs-fbss-1", label: "SCS bei FBSS – einzeitig (Stimulator + Elektroden)", hd: "M96.1", ops: ["5-039.e1", "5-039.35"], vwd: 3 },
+  { id: "scs-fbss-2a", label: "SCS bei FBSS – Teststimulation mit permanenten Elektroden", hd: "M96.1", ops: ["5-039.35"], vwd: 3 },
+  { id: "scs-fbss-2b", label: "SCS bei FBSS – Stimulator im 2. Aufenthalt (wiederaufladbar)", hd: "M96.1", ops: ["5-039.n2"], vwd: 2 },
+  { id: "scs-crps", label: "SCS bei CRPS – einzeitig", hd: "G90.51", ops: ["5-039.e1", "5-039.35"], vwd: 3 },
+  { id: "scs-pavk", label: "SCS bei PAVK – einzeitig", hd: "I70.22", ops: ["5-039.e1", "5-039.35"], vwd: 6 },
+  { id: "scs-ipg", label: "SCS – Aggregatwechsel (nicht wiederaufladbar)", hd: "M96.1", ops: ["5-039.f1"], vwd: 2 },
+  { id: "scs-rev", label: "SCS – Revision mit Elektrodenwechsel", hd: "T85.1", ops: ["5-039.c1", "5-039.35"], vwd: 2 },
+  { id: "drg-knee", label: "DRG-Stimulation bei Knieschmerz – einzeitig", hd: "M79.66", ops: ["5-039.k1", "5-039.j1"], vwd: 2 },
+  { id: "ths-pd", label: "THS bei Parkinson – Stimulator + Elektroden", hd: "G20.10", ops: ["5-028.91", "5-014.93"], vwd: 7 },
+  { id: "ths-ipg", label: "THS – Aggregatwechsel (wiederaufladbar)", hd: "G20.10", ops: ["5-028.a2"], vwd: 2 },
+  { id: "rfa-facet", label: "RFA – Facetten-Thermokoagulation 2 Segmente, 2 Tage", hd: "M54.5", ops: ["5-83a.01"], vwd: 2 },
+];
+
+const SOURCES = [
+  { label: "InEK: aG-DRG-Fallpauschalen-Katalog und Pflegeerlöskatalog 2026", url: "https://www.g-drg.de/ag-drg-system-2026/fallpauschalen-katalog/fallpauschalen-katalog-2026" },
+  { label: "GKV-Spitzenverband: Bundesbasisfallwert 2026 (4.570,64 €)", url: "https://www.gkv-spitzenverband.de/media/dokumente/krankenversicherung_1/krankenhaeuser/budgetverhandlungen/bundesbasisfallwert/BBFW_2026.pdf" },
+  { label: "vdek: Landesbasisfallwerte 2026 (Stand 28.05.2026)", url: "https://www.vdek.com/vertragspartner/Krankenhaeuser/landesbasisfallwerte.html" },
+  { label: "KBV: EBM / Orientierungswert 2026 (12,7404 Cent)", url: "https://www.kbv.de/html/ebm.php" },
+  { label: "BfArM: ICD-10-GM und OPS 2026", url: "https://www.bfarm.de/DE/Kodiersysteme/Klassifikationen/_node.html" },
+  { label: "KBV: Anhang 2 zum EBM (OPS → Kategorie/GOP, § 115b-Kennzeichen), Stand 01.07.2026", url: "https://www.kbv.de/praxis/abrechnung/ambulantes-operieren/anhang-2" },
+  { label: "Zusatzentgelte 2026 (ZE138–ZE141, Anlage 2/5)", url: "https://www.drgsystem.de/ze" },
+  { label: "DKG: AOP-Katalog nach § 115b SGB V", url: "https://www.dkgev.de/themen/finanzierung-leistungskataloge/ambulante-verguetung/ambulantes-operieren-115b-sgb-v/" },
+];
+
+return { META, LBFW, DRGS, ZE, EBM, ICD, OPS, PRESETS, SOURCES };
+})();
+const __grouper = (() => {
+// Regelbasierter Mini-Grouper für Neuromodulation / RFA (aG-DRG 2026)
+// KEIN zertifizierter Grouper. Bildet nur die hier hinterlegten Konstellationen
+// bei PCCL 0 ab (keine Nebendiagnosen, keine Altersverzweigungen < 18 Jahre).
+
+const { DRGS, ZE, ICD, OPS, EBM } = __data;
+const icdMap = Object.fromEntries(ICD.map((i) => [i.code, i]));
+const opsMap = Object.fromEntries(OPS.map((p) => [p.code, p]));
+
+const MDC_NAMES = {
+  "01": "MDC 01 – Krankheiten und Störungen des Nervensystems",
+  "05": "MDC 05 – Krankheiten und Störungen des Kreislaufsystems",
+  "08": "MDC 08 – Krankheiten und Störungen an Muskel-Skelett-System und Bindegewebe",
+  "801": "Fehler-DRG / OR-Prozedur ohne Bezug zur Hauptdiagnose (Diagnose außerhalb der Ziel-MDC)",
+};
+
+const round2 = (x) => Math.round(x * 100) / 100;
+
+/**
+ * @param {{hd:string, ops:string[], vwd:number, alter?:number}} input
+ * @returns {{drg:string|null, mdc:string|null, ze:string[], steps:string[], warnings:string[], errors:string[]}}
+ */
+function group(input) {
+  const { hd, vwd = 1, alter = null } = input;
+  const codes = [...new Set(input.ops || [])];
+  const steps = [];
+  const warnings = [];
+  const errors = [];
+  const ze = [];
+
+  const diag = icdMap[hd];
+  if (!diag) {
+    errors.push("Bitte eine Hauptdiagnose aus der Liste wählen.");
+    return { drg: null, mdc: null, ze, steps, warnings, errors };
+  }
+  steps.push(`Hauptdiagnose ${diag.code} → ${MDC_NAMES[diag.mdc]}`);
+
+  const procs = codes.map((c) => opsMap[c]).filter(Boolean);
+  const has = (fam) => procs.some((p) => p.fam === fam);
+  const hasCode = (re) => procs.some((p) => re.test(p.code));
+
+  if (procs.some((p) => p.ambulantOnly)) {
+    warnings.push("Einkanal-/Sonderkodes sind nur für die ambulante Ansicht hinterlegt und werden stationär nicht gruppiert.");
+  }
+
+  if (alter !== null && alter < 18) {
+    warnings.push("Alter < 18 Jahre: altersabhängige Verzweigungen (z. B. B20A, B20C) sind nicht abgebildet.");
+  }
+
+  // ----- Plausibilitätsprüfungen -----
+  const stimWithLead = procs.filter((p) => p.fam === "stimWithLead");
+  const stimNoLead = procs.filter((p) => p.fam === "stimNoLead" && !p.ambulantOnly);
+  if (stimWithLead.length + stimNoLead.length > 1) {
+    errors.push("Es ist mehr als ein Neurostimulator-Kode gewählt. Implantation mit Elektrode (5-039.e/k), ohne Elektrode (5-039.n/q) und Wechsel (5-039.f/m) schließen sich gegenseitig aus.");
+  }
+  if (hasCode(/^5-039\.e/) && !hasCode(/^5-039\.3[4-7]$/)) {
+    warnings.push("Bei 5-039.e_ ist die Elektrode gesondert zu kodieren (5-039.34–.37).");
+  }
+  if (hasCode(/^5-039\.k/) && !hasCode(/^5-039\.j/)) {
+    warnings.push("Bei 5-039.k_ ist die Elektrode gesondert zu kodieren (5-039.j_).");
+  }
+  if (hasCode(/^5-028\.9/) && !hasCode(/^5-014\.9/)) {
+    warnings.push("Bei 5-028.9_ sind die intrazerebralen Elektroden gesondert zu kodieren (5-014.9_).");
+  }
+  if (hasCode(/^5-039\.(3|c|j|a)/) && !has("access") && hasCode(/^5-039\.(36|37|c2|c3|a4|a5)$/)) {
+    warnings.push("Hinweis: Bei offen chirurgischen Eingriffen ist der Zugang gesondert zu kodieren (5-030 ff. bis 5-032 ff.). Er beeinflusst die DRG hier nicht.");
+  }
+
+  if (errors.length) return { drg: null, mdc: diag.mdc, ze, steps, warnings, errors };
+
+  // ----- Prozedurklassen -----
+  const thsProcs = procs.filter((p) => p.fam.startsWith("ths"));
+  const spinal = {
+    stimWith: stimWithLead.length > 0,
+    stimNo: stimNoLead.length > 0,
+    leadPerm: has("leadPerm"),
+    leadTemp: has("leadTemp"),
+    rev: has("revStim") || has("revLead"),
+    removal: has("removal"),
+  };
+  const anySpinal = spinal.stimWith || spinal.stimNo || spinal.leadPerm || spinal.leadTemp || spinal.rev || spinal.removal;
+  const anyStim = spinal.stimWith || spinal.stimNo;
+  const rfa = { soft: has("rfaSoft"), endo: has("rfaEndo"), facet: has("rfaFacet") };
+
+  let drg = null;
+
+  if (thsProcs.length && anySpinal) {
+    warnings.push("Kombination aus Hirn- und Rückenmarkstimulation in einem Aufenthalt ist nicht abgebildet – gruppiert wird die Hirnstimulation.");
+  }
+
+  // ===== Tiefe Hirnstimulation =====
+  if (thsProcs.length) {
+    steps.push("Prozedurklasse: Tiefe Hirnstimulation (5-014 / 5-028 / 5-029)");
+    if (diag.mdc !== "01") {
+      warnings.push("THS-Prozeduren erwarten eine Hauptdiagnose aus MDC 01 (z. B. G20.-, G24.-, G25.- oder T85.1). Diese Konstellation ist nicht abgebildet.");
+    } else if (has("thsStimWithLead")) {
+      drg = "B21A";
+      steps.push("Neurostimulator zur Hirnstimulation mit Elektrodenimplantation (5-028.9_) → B21A");
+    } else if (has("thsStimNoLead")) {
+      drg = "B21B";
+      steps.push("Neurostimulator zur Hirnstimulation ohne Elektrodenimplantation (5-028.a_/c_) → B21B");
+    } else if (hasCode(/^5-014\.b/) || (has("thsRevLead") && has("thsLead"))) {
+      drg = "B20D";
+      steps.push("Revision intrazerebraler Elektroden (5-014.b_ bzw. 5-028.5 mit Elektrodenwechsel) → B20D");
+    } else if (has("thsAnchor")) {
+      drg = "B20B";
+      steps.push("Implantation von Knochenankern zur stereotaktischen Elektrodeneinführung (5-029.f) → B20B");
+    } else if (has("thsRevStim") || has("thsRemoveStim")) {
+      drg = "B20E";
+      steps.push("Revision bzw. Entfernung des Hirnstimulators ohne Neuanlage (5-028.3 / 5-028.6) → B20E");
+    } else if (has("thsRemoveLead")) {
+      drg = "B09Z";
+      steps.push("Entfernung von Elektrode und/oder Knochenankern (5-028.7 / 5-029.g) → B09Z");
+    } else {
+      warnings.push("Diese THS-Konstellation (z. B. nur intrazerebrale Elektroden ohne Stimulator) ist im Tool nicht abgebildet.");
+    }
+    for (const p of thsProcs) if (p.ze && drg) ze.push(p.ze);
+    if (drg && !ze.length && (drg === "B21A" || drg === "B21B")) {
+      steps.push("Nicht wiederaufladbarer Hirnstimulator: Implantatkosten sind in der DRG einkalkuliert (kein ZE).");
+    }
+  }
+
+  // ===== Rückenmark- / Spinalganglienstimulation =====
+  else if (anySpinal) {
+    steps.push("Prozedurklasse: Rückenmark- bzw. Spinalganglienstimulation (5-039)");
+    if (diag.mdc === "801") {
+      if (anyStim || spinal.leadPerm) {
+        drg = "801C";
+        steps.push("OR-Prozedur ohne Bezug zur Hauptdiagnose → 801C");
+      } else {
+        warnings.push("Diese Konstellation ist nicht abgebildet.");
+      }
+    } else if (diag.mdc === "01") {
+      if (anyStim) { drg = "B19A"; steps.push("Implantation/Wechsel eines Neurostimulators → B19A"); }
+      else if (spinal.leadPerm || spinal.leadTemp) { drg = "B19B"; steps.push("Implantation/Wechsel eines (permanenten oder temporären) Elektrodensystems ohne Stimulator → B19B"); }
+      else { drg = "B19C"; steps.push("Revision/Entfernung ohne Implantation oder Wechsel von Stimulator bzw. Elektroden → B19C"); }
+    } else if (diag.mdc === "08") {
+      if (anyStim) { drg = "I19A"; steps.push("Implantation/Wechsel eines Neurostimulators → I19A (die Stimulator-Prozedur steuert die DRG, auch bei gleichzeitiger Elektrodenimplantation; der Katalogtitel ist daher missverständlich)"); }
+      else if (spinal.leadPerm) { drg = "I19B"; steps.push("Implantation/Wechsel eines permanenten Elektrodensystems ohne Stimulator → I19B"); }
+      else if (spinal.leadTemp) {
+        drg = hasCode(/^5-039\.33$/) ? "I10G" : "I10F";
+        steps.push(`Nur temporäre Teststimulationselektrode(n): ${drg === "I10F" ? "eine Elektrode (5-039.32) → I10F" : "mehrere Elektroden (5-039.33) → I10G"}`);
+      } else if (spinal.removal && !spinal.rev) {
+        const rm = new Set(procs.filter((p) => p.fam === "removal").map((p) => p.rm));
+        if (rm.has("platte") || rm.has("platteMulti")) { drg = "I10G"; steps.push("Entfernung epiduraler Plattenelektrode(n) (5-039.a4/.a5) → I10G"); }
+        else if (rm.has("stab") || rm.has("stabMulti")) { drg = "I23B"; steps.push("Entfernung epiduraler Stabelektrode(n) (5-039.a2/.a3, ggf. mit 5-039.d) → I23B"); }
+        else warnings.push("Diese Entfernung (z. B. nur Aggregat 5-039.d oder Spinalganglien-Komponenten) ist im Tool nicht abgebildet.");
+      } else {
+        warnings.push("Revision mit Hauptdiagnose aus MDC 08 ist nicht abgebildet. Bei mechanischer Komplikation ist i. d. R. T85.1 Hauptdiagnose (→ MDC 01, B19C).");
+      }
+    } else if (diag.mdc === "05") {
+      if (spinal.leadPerm || spinal.leadTemp) { drg = "F21C"; steps.push("OR-Prozedur bei Kreislauferkrankung mit Implantation (permanenter oder temporärer) Elektroden → F21C"); }
+      else if (anyStim) { drg = "F21E"; steps.push("OR-Prozedur bei Kreislauferkrankung, Stimulator ohne Elektrodenimplantation → F21E"); }
+      else if (spinal.removal && !spinal.rev) {
+        const rm = new Set(procs.filter((p) => p.fam === "removal").map((p) => p.rm));
+        if (rm.has("platte")) { drg = "801E"; steps.push("Entfernung einer Plattenelektrode ohne Bezug zur Hauptdiagnose → 801E"); }
+        else if (rm.has("stabMulti")) { drg = "802C"; steps.push("Entfernung mehrerer Stabelektroden ohne Bezug zur Hauptdiagnose → 802C"); }
+        else if (rm.has("stab")) { drg = "802D"; steps.push("Entfernung einer Stabelektrode ohne Bezug zur Hauptdiagnose → 802D"); }
+        else warnings.push("Diese Entfernung mit Hauptdiagnose aus MDC 05 ist nicht abgebildet.");
+      }
+      else { warnings.push("Revision mit Hauptdiagnose aus MDC 05 ist nicht abgebildet. Bei mechanischer Komplikation ist i. d. R. T85.1 Hauptdiagnose (→ B19C)."); }
+    }
+    if (drg) for (const p of [...stimWithLead, ...stimNoLead]) if (p.ze) ze.push(p.ze);
+    if (rfa.soft || rfa.endo || rfa.facet) warnings.push("Zusätzliche RFA-Prozeduren beeinflussen die Gruppierung hier nicht.");
+  }
+
+  // ===== Radiofrequenzablation =====
+  else if (rfa.soft || rfa.endo || rfa.facet) {
+    steps.push("Prozedurklasse: Minimalinvasive Schmerztherapie / Radiofrequenzablation");
+    const spineDx = /^M5[34]/.test(diag.code) || diag.code === "M96.1";
+    if (diag.mdc !== "08") {
+      warnings.push("RFA mit Hauptdiagnose außerhalb von MDC 08 (z. B. Trigeminusneuralgie) ist nicht abgebildet.");
+    } else if (rfa.soft) {
+      drg = "I24B"; steps.push("Perkutane Destruktion von Weichteilen durch Thermoablation (5-859.37) → I24B");
+    } else if (rfa.endo) {
+      drg = "I10H"; steps.push("Facettendenervation (5-830.2) → I10H");
+    } else if (spineDx) {
+      drg = vwd > 1 ? "I68E" : "I68F";
+      steps.push(`Nicht-OR-Prozedur (5-83a) bei Wirbelsäulenerkrankung, ${vwd > 1 ? "mehr als ein Belegungstag → I68E" : "ein Belegungstag → I68F"}`);
+    } else {
+      warnings.push("5-83a mit dieser Hauptdiagnose ist nicht abgebildet.");
+    }
+  }
+
+  // ===== nur Nachkontrolle / Zugang =====
+  else if (procs.length) {
+    warnings.push("Ohne OR-Prozedur (z. B. nur Nachprogrammierung 8-631) ergibt sich eine medizinische DRG je nach Hauptdiagnose – nicht abgebildet.");
+  } else {
+    errors.push("Bitte mindestens eine Prozedur wählen.");
+  }
+
+  if (has("followup")) {
+    steps.push("8-631.- (Nachprogrammierung) ist nicht gruppierungsrelevant; Ersteinstellung ist im Implantationskode enthalten.");
+  }
+
+  return { drg, mdc: diag.mdc, ze: [...new Set(ze)], steps, warnings, errors };
+}
+
+/**
+ * Erlösberechnung nach FPV 2026 (vereinfacht, Hauptabteilung, keine Verlegung)
+ * @param {string} drgCode
+ * @param {{vwd:number, bfw:number, pew:number, zeAmounts?:Object, includePflege?:boolean}} p
+ */
+function calcRevenue(drgCode, ze, p) {
+  const d = DRGS[drgCode];
+  if (!d) return null;
+  const vwd = Math.max(1, Math.round(p.vwd || 1));
+  let abschlagTage = 0, zuschlagTage = 0;
+  if (d.ugvd && vwd <= d.ugvd) abschlagTage = d.ugvd + 1 - vwd;
+  if (d.ogvd && vwd >= d.ogvd) zuschlagTage = vwd + 1 - d.ogvd;
+  const abschlagBR = round3(abschlagTage * (d.ugvdBR || 0));
+  const zuschlagBR = round3(zuschlagTage * (d.ogvdBR || 0));
+  const effBR = round3(d.rg - abschlagBR + zuschlagBR);
+
+  const basis = round2(d.rg * p.bfw);
+  const abschlag = round2(abschlagBR * p.bfw);
+  const zuschlag = round2(zuschlagBR * p.bfw);
+  const drgErloes = round2(basis - abschlag + zuschlag);
+  const pflege = p.includePflege === false ? 0 : round2(d.pflege * vwd * p.pew);
+
+  const zeItems = (ze || []).map((code) => {
+    const def = ZE[code];
+    const custom = p.zeAmounts && p.zeAmounts[code];
+    const amount = def && def.amount != null ? (custom ?? def.amount) : (custom ?? null);
+    return { code, title: def ? def.title : code, amount, individuell: def ? def.amount == null : true };
+  });
+  const zeSumme = round2(zeItems.reduce((s, z) => s + (z.amount || 0), 0));
+
+  return {
+    drg: drgCode, def: d, vwd,
+    abschlagTage, zuschlagTage, abschlagBR, zuschlagBR, effBR,
+    basis, abschlag, zuschlag, drgErloes, pflege, zeItems, zeSumme,
+    gesamt: round2(drgErloes + pflege + zeSumme),
+  };
+}
+
+const round3 = (x) => Math.round(x * 1000) / 1000;
+
+/** Ambulante Sicht: AOP-Fähigkeit und EBM-OP-Leistung je OPS */
+function ambulant(codes, ow) {
+  const rows = codes.map((c) => opsMap[c]).filter(Boolean).map((p) => {
+    const e = p.ebm ? EBM[p.ebm] : null;
+    return {
+      code: p.code, text: p.text, aop: !!p.aop, ebm: p.ebm || null,
+      points: e ? e.points : null, euro: e ? round2(e.points * ow) : null,
+    };
+  });
+  const withEbm = rows.filter((r) => r.euro != null);
+  const max = withEbm.length ? withEbm.reduce((a, b) => (b.points > a.points ? b : a)) : null;
+  let uew = null;
+  if (max) {
+    const cat = Number(max.ebm.slice(-1));
+    const g = cat >= 6 ? "31506" : cat === 5 ? "31505" : "31504";
+    uew = { gop: g, points: EBM[g].points, euro: round2(EBM[g].points * ow), title: EBM[g].title };
+  }
+  return { rows, leading: max, uew };
+}
+
+/**
+ * Wiederaufnahme-Prüfung nach § 2 FPV 2026 (vereinfacht)
+ * @param {{drg1:string, drg2:string, tage:number, komplikation:boolean}} p tage = Kalendertage zwischen Aufnahme 1 und Aufnahme 2
+ */
+function checkReadmission({ drg1, drg2, tage, komplikation }) {
+  const a = DRGS[drg1], b = DRGS[drg2];
+  const steps = [];
+  if (!a || !b) return { merge: null, steps: ["Bitte beide DRGs wählen."] };
+  if (a.wiederaufnahmeAusnahme || b.wiederaufnahmeAusnahme) {
+    steps.push(`Mindestens eine DRG (${a.wiederaufnahmeAusnahme ? drg1 : drg2}) ist im Katalog von der Wiederaufnahmeregel ausgenommen.`);
+    return { merge: false, steps };
+  }
+  const ogvd = a.ogvd; // erster Tag mit Zuschlag des ersten Aufenthalts
+  const withinOgvd = ogvd ? tage < ogvd : tage <= 1;
+  steps.push(`Wiederaufnahme nach ${tage} Kalendertagen; oGVD Fall 1 (${drg1}): erster Tag mit Zuschlag = ${ogvd ?? "–"} → ${withinOgvd ? "innerhalb" : "außerhalb"} der oGVD`);
+  const sameBasis = drg1.slice(0, 3) === drg2.slice(0, 3);
+  steps.push(`Basis-DRG: ${drg1.slice(0, 3)} / ${drg2.slice(0, 3)} → ${sameBasis ? "gleich" : "verschieden"}`);
+  if (withinOgvd && sameBasis) {
+    steps.push("§ 2 Abs. 1 FPV: innerhalb oGVD und gleiche Basis-DRG → Zusammenfassung");
+    return { merge: true, steps };
+  }
+  const within30 = tage <= 30;
+  const sameMdc = a.mdc === b.mdc;
+  steps.push(`30-Kalendertage-Frist: ${within30 ? "eingehalten (≤ 30)" : "überschritten"}; MDC: ${a.mdc} / ${b.mdc} → ${sameMdc ? "gleich" : "verschieden"}; Partitionen: ${a.part} → ${b.part}`);
+  if (within30 && sameMdc && (a.part === "M" || a.part === "A") && b.part === "O") {
+    steps.push("§ 2 Abs. 2 FPV: innerhalb 30 Tagen, gleiche MDC, erst Partition M/A, dann O → Zusammenfassung");
+    return { merge: true, steps };
+  }
+  if (withinOgvd && komplikation) {
+    steps.push("§ 2 Abs. 3 FPV: Wiederaufnahme wegen Komplikation (in Verantwortung des Krankenhauses) innerhalb der oGVD → Zusammenfassung");
+    return { merge: true, steps };
+  }
+  steps.push("Keine Voraussetzung erfüllt → zwei getrennte Fälle");
+  return { merge: false, steps };
+}
+
+return { MDC_NAMES, group, calcRevenue, ambulant, checkReadmission };
+})();
+const __app = (() => {
+const { META, LBFW, DRGS, ZE, ICD, OPS, PRESETS, SOURCES } = __data;
+const { group, calcRevenue, ambulant, checkReadmission, MDC_NAMES } = __grouper;
+const $ = (s) => document.querySelector(s);
+const eur = (x) => x == null ? "–" : x.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+const br = (x, d = 3) => x == null ? "–" : x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: 4 });
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+// ---------- Einstellungen (lokal gespeichert) ----------
+const SETTINGS_KEY = "nmg-settings-v1";
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+}
+function saveSettings(s) {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch { /* ignorieren */ }
+}
+const settings = Object.assign({ bfwId: "BUND", bfwCustom: "", pew: META.pflegeentgeltwert, ze61: "", inclPflege: true, ow: META.orientierungswert }, loadSettings());
+
+const state = { hd: "", ops: new Set(), amb: new Set() };
+
+// ---------- Tabs ----------
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach((x) => { x.classList.toggle("active", x === t); x.setAttribute("aria-selected", x === t); });
+  document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === `tab-${t.dataset.tab}`));
+}));
+
+// ---------- Hauptdiagnose ----------
+function renderHdList() {
+  const q = norm($("#hd-search").value.trim());
+  const list = ICD.filter((i) => !q || norm(i.code).includes(q) || norm(i.text).includes(q) || norm(i.group).includes(q));
+  let html = "", grp = "";
+  for (const i of list) {
+    if (i.group !== grp) { grp = i.group; html += `<div class="pick-group">${esc(grp)}</div>`; }
+    html += `<button type="button" role="option" class="pick${state.hd === i.code ? " sel" : ""}" data-code="${i.code}"><span class="code">${i.code}</span><span>${esc(i.text)}</span></button>`;
+  }
+  $("#hd-list").innerHTML = html || `<div class="empty-list">Keine Treffer. Das Tool enthält nur typische Diagnosen der Neuromodulation.</div>`;
+}
+$("#hd-list").addEventListener("click", (e) => {
+  const b = e.target.closest(".pick"); if (!b) return;
+  state.hd = b.dataset.code; renderHdSelected(); renderHdList(); compute();
+});
+$("#hd-search").addEventListener("input", renderHdList);
+function renderHdSelected() {
+  const i = ICD.find((x) => x.code === state.hd);
+  const el = $("#hd-selected");
+  el.classList.toggle("empty", !i);
+  el.innerHTML = i ? `<span class="code">${i.code}</span>${esc(i.text)}` : "Noch keine Hauptdiagnose gewählt";
+}
+
+// ---------- OPS (stationär + ambulant) ----------
+function opsTags(p, mode) {
+  const t = [];
+  if (p.ze) t.push(`<span class="tag ze">${p.ze}</span>`);
+  if (mode === "amb" && p.aop) t.push(`<span class="tag aop">AOP</span>`);
+  if (mode === "amb" && p.ebm) t.push(`<span class="tag">EBM ${p.ebm}</span>`);
+  return t.length ? `<span class="tags">${t.join("")}</span>` : "";
+}
+function renderOpsList(listSel, searchSel, set, filter, mode) {
+  const q = norm($(searchSel).value.trim());
+  const list = OPS.filter(filter).filter((p) => !q || norm(p.code).includes(q) || norm(p.text).includes(q) || norm(p.group).includes(q));
+  let html = "", grp = "";
+  for (const p of list) {
+    if (p.group !== grp) { grp = p.group; html += `<div class="pick-group">${esc(grp)}</div>`; }
+    html += `<button type="button" class="pick${set.has(p.code) ? " sel" : ""}" data-code="${p.code}" aria-pressed="${set.has(p.code)}"><span class="box"></span><span class="code">${p.code}</span><span>${esc(p.text)}${opsTags(p, mode)}</span></button>`;
+  }
+  $(listSel).innerHTML = html || `<div class="empty-list">Keine Treffer.</div>`;
+}
+function renderChips(sel, set, onRemove) {
+  $(sel).innerHTML = [...set].map((c) => `<span class="chip">${c}<button type="button" data-code="${c}" aria-label="${c} entfernen">×</button></span>`).join("");
+  $(sel).querySelectorAll("button").forEach((b) => b.addEventListener("click", () => onRemove(b.dataset.code)));
+}
+
+const statFilter = (p) => !p.ambulantOnly;
+const ambFilter = (p) => p.aop || p.ebm || p.fam.startsWith("rfa");
+
+function refreshStatOps() {
+  renderOpsList("#ops-list", "#ops-search", state.ops, statFilter, "stat");
+  renderChips("#ops-selected", state.ops, (c) => { state.ops.delete(c); refreshStatOps(); compute(); });
+}
+function refreshAmbOps() {
+  renderOpsList("#amb-list", "#amb-search", state.amb, ambFilter, "amb");
+  renderChips("#amb-selected", state.amb, (c) => { state.amb.delete(c); refreshAmbOps(); computeAmb(); });
+}
+$("#ops-list").addEventListener("click", (e) => {
+  const b = e.target.closest(".pick"); if (!b) return;
+  const c = b.dataset.code; state.ops.has(c) ? state.ops.delete(c) : state.ops.add(c);
+  refreshStatOps(); compute();
+});
+$("#amb-list").addEventListener("click", (e) => {
+  const b = e.target.closest(".pick"); if (!b) return;
+  const c = b.dataset.code; state.amb.has(c) ? state.amb.delete(c) : state.amb.add(c);
+  refreshAmbOps(); computeAmb();
+});
+$("#ops-search").addEventListener("input", () => renderOpsList("#ops-list", "#ops-search", state.ops, statFilter, "stat"));
+$("#amb-search").addEventListener("input", () => renderOpsList("#amb-list", "#amb-search", state.amb, ambFilter, "amb"));
+$("#ops-clear").addEventListener("click", () => { state.ops.clear(); refreshStatOps(); compute(); });
+$("#amb-clear").addEventListener("click", () => { state.amb.clear(); refreshAmbOps(); computeAmb(); });
+
+// ---------- Presets ----------
+$("#preset").innerHTML += PRESETS.map((p) => `<option value="${p.id}">${esc(p.label)}</option>`).join("");
+$("#preset").addEventListener("change", (e) => {
+  const p = PRESETS.find((x) => x.id === e.target.value); if (!p) return;
+  state.hd = p.hd; state.ops = new Set(p.ops); $("#vwd").value = p.vwd;
+  $("#hd-search").value = ""; $("#ops-search").value = "";
+  renderHdSelected(); renderHdList(); refreshStatOps(); compute();
+});
+
+// ---------- Parameter ----------
+$("#bfw-select").innerHTML = LBFW.map((l) => `<option value="${l.id}">${esc(l.name)} – ${eur(l.value)}</option>`).join("") + `<option value="CUSTOM">Eigener Wert …</option>`;
+$("#bfw-select").value = settings.bfwId;
+$("#bfw-custom").value = settings.bfwCustom;
+$("#pew").value = settings.pew;
+$("#ze61").value = settings.ze61;
+$("#incl-pflege").checked = settings.inclPflege;
+$("#ow").value = settings.ow;
+function syncBfwCustom() { $("#bfw-custom-wrap").classList.toggle("hidden", $("#bfw-select").value !== "CUSTOM"); }
+syncBfwCustom();
+
+function currentBfw() {
+  const id = $("#bfw-select").value;
+  if (id === "CUSTOM") return parseFloat($("#bfw-custom").value) || META.bbfw;
+  return (LBFW.find((l) => l.id === id) || LBFW[0]).value;
+}
+function persist() {
+  Object.assign(settings, {
+    bfwId: $("#bfw-select").value, bfwCustom: $("#bfw-custom").value, pew: parseFloat($("#pew").value) || 0,
+    ze61: $("#ze61").value, inclPflege: $("#incl-pflege").checked, ow: parseFloat($("#ow").value) || META.orientierungswert,
+  });
+  saveSettings(settings);
+}
+["#vwd", "#alter", "#bfw-custom", "#pew", "#ze61"].forEach((s) => $(s).addEventListener("input", () => { persist(); compute(); }));
+["#bfw-select", "#incl-pflege"].forEach((s) => $(s).addEventListener("change", () => { syncBfwCustom(); persist(); compute(); }));
+$("#ow").addEventListener("input", () => { persist(); computeAmb(); });
+
+// ---------- Mobile Ergebnisleiste ----------
+function setMobileBar(text) {
+  const bar = $("#mobile-bar");
+  bar.classList.toggle("hidden", !text || !$("#tab-stationaer").classList.contains("active"));
+  if (text) $("#mobile-bar-text").textContent = text;
+}
+$("#mobile-bar").addEventListener("click", () => $("#result").scrollIntoView({ behavior: "smooth", block: "start" }));
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => compute()));
+
+// ---------- Stationäre Berechnung ----------
+let lastText = "";
+function compute() {
+  const out = $("#result");
+  if (!state.hd && !state.ops.size) {
+    out.innerHTML = `<div class="result-empty"><p>Hauptdiagnose und Prozedur wählen – das Ergebnis erscheint hier.</p></div>`;
+    setMobileBar(null);
+    return;
+  }
+  const vwd = Math.max(1, parseInt($("#vwd").value, 10) || 1);
+  const alterRaw = $("#alter").value;
+  const r = group({ hd: state.hd, ops: [...state.ops], vwd, alter: alterRaw === "" ? null : parseInt(alterRaw, 10) });
+  const alerts = [
+    ...r.errors.map((m) => `<div class="alert err">${esc(m)}</div>`),
+    ...r.warnings.map((m) => `<div class="alert warn">${esc(m)}</div>`),
+  ].join("");
+  const stepsHtml = r.steps.length ? `<div class="section-title">So wurde gruppiert</div><ol class="steps">${r.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : "";
+
+  if (!r.drg) {
+    setMobileBar("Keine DRG ermittelt");
+    out.innerHTML = `<div class="no-drg">Keine DRG ermittelt</div><p class="muted small">Die gewählte Kombination ist unvollständig oder im Tool nicht abgebildet.</p>${alerts}${stepsHtml}`;
+    lastText = "";
+    return;
+  }
+
+  const ze61 = parseFloat($("#ze61").value);
+  const bfw = currentBfw();
+  const rev = calcRevenue(r.drg, r.ze, {
+    vwd, bfw, pew: parseFloat($("#pew").value) || 0, includePflege: $("#incl-pflege").checked,
+    zeAmounts: isNaN(ze61) ? {} : { "ZE2026-61": ze61 },
+  });
+  const d = rev.def;
+  const gvd = `${d.ugvd ?? "–"} / ${d.ogvd ?? "–"}`;
+
+  let rows = `<tr><td>Basisbetrag<span class="sub">Bewertungsrelation ${br(d.rg)} × Basisfallwert ${eur(bfw)}</span></td><td>${eur(rev.basis)}</td></tr>`;
+  if (rev.abschlagTage) rows += `<tr class="neg"><td>Abschlag untere Grenzverweildauer<span class="sub">${rev.abschlagTage} Tag(e) × ${br(d.ugvdBR)} BR</span></td><td>− ${eur(rev.abschlag)}</td></tr>`;
+  if (rev.zuschlagTage) rows += `<tr class="pos"><td>Zuschlag obere Grenzverweildauer<span class="sub">${rev.zuschlagTage} Tag(e) × ${br(d.ogvdBR)} BR</span></td><td>+ ${eur(rev.zuschlag)}</td></tr>`;
+  if ($("#incl-pflege").checked) rows += `<tr><td>Pflegeerlös<span class="sub">${rev.vwd} Tag(e) × ${br(d.pflege, 4)} BR × ${eur(parseFloat($("#pew").value) || 0)}</span></td><td>${eur(rev.pflege)}</td></tr>`;
+  for (const z of rev.zeItems) {
+    rows += `<tr><td>${z.code}<span class="sub">${esc(z.title)}</span></td><td>${z.amount != null ? eur(z.amount) : "individuell"}</td></tr>`;
+  }
+  rows += `<tr class="total"><td>Erlös gesamt (Schätzung)</td><td>${eur(rev.gesamt)}</td></tr>`;
+
+  const zeNote = rev.zeItems.some((z) => z.individuell && z.amount == null)
+    ? `<div class="alert info">ZE2026-61 ist krankenhausindividuell vereinbart und daher nicht in der Summe enthalten. Betrag unter „Fallparameter“ eintragen.</div>` : "";
+
+  out.innerHTML = `
+    <div class="drg-head">
+      <div class="drg-code">${r.drg}</div>
+      <div class="drg-title">${esc(d.title)}</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="k">Bew.-Relation</div><div class="v">${br(d.rg)}</div></div>
+      <div class="kpi"><div class="k">Partition</div><div class="v">${d.part}</div></div>
+      <div class="kpi"><div class="k">uGVD / oGVD</div><div class="v">${gvd}</div></div>
+      <div class="kpi"><div class="k">mittl. VWD</div><div class="v">${br(d.mvd, 1)}</div></div>
+    </div>
+    <table class="calc">${rows}</table>
+    ${zeNote}${alerts}${stepsHtml}
+    <div class="section-title">Annahmen</div>
+    <p class="muted small">PCCL 0, Hauptabteilung, keine Verlegung, ${MDC_NAMES[r.mdc] || ""}. uGVD/oGVD = erster Tag mit Abschlag bzw. Zuschlag.</p>
+    <div class="actions">
+      <button class="btn" type="button" id="btn-copy">Ergebnis kopieren</button>
+      <button class="btn" type="button" id="btn-print">Drucken / PDF</button>
+    </div>`;
+
+  setMobileBar(`${r.drg} · ${eur(rev.gesamt)}`);
+  lastText = [
+    `Neuromod-Grouper ${META.year} (privates Projekt, ohne Gewähr)`,
+    `HD: ${state.hd}`, `OPS: ${[...state.ops].join(", ")}`, `VWD: ${rev.vwd} Tage`,
+    `aG-DRG: ${r.drg} – ${d.title}`, `Bewertungsrelation: ${br(d.rg)}; Basisfallwert: ${eur(bfw)}`,
+    `DRG-Erlös: ${eur(rev.drgErloes)}`, `Pflegeerlös: ${eur(rev.pflege)}`,
+    ...rev.zeItems.map((z) => `${z.code}: ${z.amount != null ? eur(z.amount) : "individuell"}`),
+    `Gesamt (Schätzung): ${eur(rev.gesamt)}`,
+  ].join("\n");
+  $("#btn-copy").addEventListener("click", async (e) => {
+    try { await navigator.clipboard.writeText(lastText); e.target.textContent = "Kopiert ✓"; }
+    catch { e.target.textContent = "Kopieren nicht möglich"; }
+    setTimeout(() => (e.target.textContent = "Ergebnis kopieren"), 1800);
+  });
+  $("#btn-print").addEventListener("click", () => window.print());
+}
+
+// ---------- Ambulant ----------
+function computeAmb() {
+  const out = $("#amb-result");
+  if (!state.amb.size) {
+    out.innerHTML = `<div class="result-empty"><p>Prozedur wählen, um AOP-Fähigkeit und EBM-Bewertung zu sehen.</p></div>`;
+    return;
+  }
+  const ow = parseFloat($("#ow").value) || META.orientierungswert;
+  const res = ambulant([...state.amb], ow);
+  const rows = res.rows.map((r) => `<tr><td><strong>${r.code}</strong>${r.aop ? ' <span class="tag aop">AOP § 115b</span>' : ""}<span class="sub">${esc(r.text)}</span>
+      <span class="sub">${r.ebm ? `EBM-GOP ${r.ebm} · ${r.points.toLocaleString("de-DE")} Punkte` : "keine EBM-OP-Leistung hinterlegt"}</span></td>
+      <td>${r.euro != null ? eur(r.euro) : "–"}</td></tr>`).join("");
+  const hasRfa = [...state.amb].some((c) => /^5-8(3a|30|59)/.test(c));
+  const rfaBox = hasRfa ? `
+    <div class="section-title">Radiofrequenzablation beim Vertragsarzt (Beispiel)</div>
+    <table class="calc">
+      ${[["34503", "Bildwandlergestützte Intervention an der Wirbelsäule", 667], ["30700", "Grundpauschale schmerztherapeutischer Patient*", 394], ["30702", "Zusatzpauschale Schmerztherapie*", 498], ["16220", "Neurologisches Gespräch, je 10 Min.", 154]]
+        .map(([g, t, p]) => `<tr><td>GOP ${g}<span class="sub">${t} · ${p} Pkt.</span></td><td>${eur(Math.round(p * ow * 100) / 100)}</td></tr>`).join("")}
+    </table>
+    <p class="muted small">* nur mit Genehmigung nach QS-Vereinbarung Schmerztherapie (§ 135 Abs. 2 SGB V). Punktzahlen ohne Gewähr.</p>` : "";
+
+  out.innerHTML = `
+    ${res.leading ? `<div class="drg-head"><div class="drg-code">${res.leading.ebm}</div><div class="drg-title">Führende OP-Leistung (höchste Bewertung)<br><strong>${eur(res.leading.euro)}</strong> bei ${br(ow, 4)} € je Punkt</div></div>` : `<div class="no-drg">Keine EBM-OP-Leistung hinterlegt</div>`}
+    ${res.uew ? `<table class="calc"><tr><td>Postoperative Überwachung (GOP ${res.uew.gop})<span class="sub">${res.uew.title} · ${res.uew.points.toLocaleString("de-DE")} Punkte · nur bei erbrachtem Leistungsinhalt</span></td><td>${eur(res.uew.euro)}</td></tr><tr class="total"><td>OP-Leistung + Überwachung</td><td>${eur(Math.round((res.leading.euro + res.uew.euro) * 100) / 100)}</td></tr></table>` : ""}
+    <div class="section-title">Prozeduren</div>
+    <table class="calc">${rows}</table>
+    <div class="alert info">Bei mehreren Eingriffen in einer Sitzung wird i. d. R. die höchstbewertete OP-Leistung abgerechnet, weitere Eingriffe ggf. über den Simultanzuschlag (GOP 31258). Postoperative Behandlungskomplexe und Anästhesie sind gesondert berechnungsfähig. Zuordnung OPS → Kategorie/GOP laut Anhang 2 zum EBM (Stand 01.07.2026).</div>
+    <div class="alert warn">Implantat-/Sachkosten (Neurostimulator, Elektroden) sind in der OP-Leistung nicht enthalten. Erstattung nach AOP-Vertrag bzw. regionalen Vereinbarungen prüfen.</div>
+    ${rfaBox}`;
+}
+
+// ---------- Wiederaufnahme ----------
+const drgOptions = Object.entries(DRGS).map(([k, v]) => `<option value="${k}">${k} – ${esc(v.title.slice(0, 70))}${v.title.length > 70 ? "…" : ""}</option>`).join("");
+$("#wa-drg1").innerHTML = drgOptions; $("#wa-drg2").innerHTML = drgOptions;
+$("#wa-drg1").value = "I19B"; $("#wa-drg2").value = "I19A";
+const today = new Date(); const iso = (d) => d.toISOString().slice(0, 10);
+$("#wa-d1").value = iso(today); $("#wa-d2").value = iso(new Date(today.getTime() + 7 * 864e5));
+function computeWa() {
+  const d1 = new Date($("#wa-d1").value), d2 = new Date($("#wa-d2").value);
+  const out = $("#wa-result");
+  if (isNaN(d1) || isNaN(d2)) { out.innerHTML = `<p class="muted">Bitte beide Aufnahmedaten eingeben.</p>`; return; }
+  const tage = Math.round((d2 - d1) / 864e5);
+  if (tage < 0) { out.innerHTML = `<div class="alert err">Aufnahme 2 liegt vor Aufnahme 1.</div>`; return; }
+  const r = checkReadmission({ drg1: $("#wa-drg1").value, drg2: $("#wa-drg2").value, tage, komplikation: $("#wa-kompl").checked });
+  out.innerHTML = `
+    <div class="verdict ${r.merge ? "yes" : "no"}">${r.merge ? "Fallzusammenführung erforderlich" : "Getrennte Abrechnung"}</div>
+    <p class="muted small">Abstand der Aufnahmen: ${tage} Kalendertage</p>
+    <div class="section-title">Prüfschritte</div>
+    <ol class="steps">${r.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>
+    <div class="alert info">Bei einer Zusammenführung wird der Gesamtfall mit allen Diagnosen und Prozeduren neu gruppiert. Vereinfachte Prüfung ohne Gewähr – Sonderregeln (z. B. Verlegungen, Partition A) sind nicht vollständig abgebildet.</div>`;
+}
+["#wa-drg1", "#wa-drg2", "#wa-d1", "#wa-d2", "#wa-kompl"].forEach((s) => $(s).addEventListener("change", computeWa));
+
+// ---------- Info ----------
+$("#sources").innerHTML = SOURCES.map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join("")
+  + `<li>Pflegeentgeltwert: ${eur(META.pflegeentgeltwert)} je Tag (§ 15 Abs. 2a KHEntgG), sofern kein krankenhausindividueller Wert vereinbart ist.</li>`
+  + `<li>Zusatzentgelte: ZE140 ${eur(ZE.ZE140.amount)}, ZE141 ${eur(ZE.ZE141.amount)} (bundeseinheitliche ZE, Anlage 2/5 Fallpauschalenkatalog 2026).</li>`;
+$("#stand").textContent = META.stand;
+
+// ---------- Init ----------
+renderHdList(); renderHdSelected(); refreshStatOps(); refreshAmbOps(); compute(); computeAmb(); computeWa();
+
+return {  };
+})();
+
+</script>
+</body>
+</html>

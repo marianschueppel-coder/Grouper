@@ -25,22 +25,20 @@ Regelbasierte Abbildung typischer Konstellationen bei PCCL 0. Nicht berücksicht
 | Pflegeentgeltwert 250 € | § 15 Abs. 2a KHEntgG |
 | EBM-Punktzahlen, Orientierungswert 12,7404 Cent | KBV / Bewertungsausschuss |
 | ICD-10-GM / OPS 2026 | BfArM |
+| OPS → EBM-Kategorie/GOP, § 115b-Kennzeichen | KBV, Anhang 2 zum EBM (Stand 01.07.2026) |
+| ZE138–ZE141 | Anlage 2/5 Fallpauschalenkatalog 2026 |
 
-## Lokal starten
+## Installation
 
-Statische Seite – z. B.:
-
-```bash
-python3 -m http.server 8000
-# http://localhost:8000
-```
+Siehe [ANLEITUNG.md](ANLEITUNG.md). Kurz: `dist/neuromod-grouper.html` läuft offline per Doppelklick; für die Website den Ordnerinhalt in ein GitHub-Repo laden und GitHub Pages (Branch `main`, `/root`) aktivieren.
 
 ## Tests
 
 Die Gruppierungslogik wird gegen veröffentlichte Gruppierungsbeispiele geprüft:
 
 ```bash
-node tests/grouper.test.mjs
+node tests/grouper.test.mjs   # bzw. npm test
+npm run build                 # erzeugt dist/neuromod-grouper.html
 ```
 
 ## Jährliche Aktualisierung

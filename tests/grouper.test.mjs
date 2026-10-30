@@ -71,8 +71,26 @@ const cases = [
   ["RFA ISG perkutan", "M54.4", ["5-83a.2"], "I68E", [], 2],
   ["RFA offen Weichteil", "M54.4", ["5-859.37"], "I24B", [], 2],
   ["RFA endoskopisch", "M54.5", ["5-830.2"], "I10H", [], 2],
-  // Teststimulation (Wiederaufnahme-Beispiele)
-  ["Test temp. Elektrode >1 Tag", "M96.1", ["5-039.32"], "I10F", [], 3],
+  // Teststimulation (Kodierbeispiele 2026, öffentlich)
+  ["Test 1 temp. Elektrode", "M96.1", ["5-039.32"], "I10F", [], 1],
+  ["Test mehrere temp. Elektroden", "M96.1", ["5-039.33"], "I10G", [], 3],
+  ["Test temp. PAVK", "I73.9", ["5-039.33"], "F21C", []],
+  ["Test temp. CRPS", "G90.51", ["5-039.33"], "B19B", []],
+  // Explantation
+  ["Explant Stab + IPG", "M54.5", ["5-039.a2", "5-039.d"], "I23B", []],
+  ["Explant Platte", "M79.66", ["5-039.a4"], "I10G", []],
+  ["Explant PAVK 1 Stab", "I73.9", ["5-039.a2", "5-039.d"], "802D", []],
+  ["Explant PAVK mehrere Stab", "I73.9", ["5-039.a3"], "802C", []],
+  ["Explant PAVK Platte", "I73.9", ["5-039.a4"], "801E", []],
+  ["Revision c0 T85.1", "T85.1", ["5-039.c0"], "B19C", []],
+  // THS Revision/Entfernung (öffentliche Beispiele 2026)
+  ["THS Rev b0", "G20.11", ["5-014.b0"], "B20D", []],
+  ["THS Explant IPG", "G25.0", ["5-028.6"], "B20E", []],
+  ["THS Explant Elektrode+Anker", "G24.1", ["5-028.7", "5-029.g"], "B09Z", []],
+  // Einkanal / weitere
+  ["SCS Einkanal n0", "M96.1", ["5-039.n0"], "I19A", ["ZE139"]],
+  ["SCS Einkanal e0", "G57.8", ["5-039.e0", "5-039.34"], "B19A", ["ZE138"]],
+  ["SCS PAVK I73.9 e1", "I73.9", ["5-039.e1", "5-039.34"], "F21C", ["ZE140"]],
 ];
 
 for (const [name, hd, ops, expDrg, expZe, vwd = 3] of cases) {
@@ -124,6 +142,9 @@ eq("WA gleiche Basis-DRG außerhalb oGVD", checkReadmission({ drg1: "I19B", drg2
 const amb = ambulant(["5-039.e1", "5-039.35"], 0.127404);
 eq("Ambulant führende GOP", amb.leading.ebm, "31256");
 eq("Ambulant € 31256", amb.leading.euro, 846.6);
+eq("Ambulant Überwachung", amb.uew.gop, "31506");
+eq("Ambulant Revision b → 31254", ambulant(["5-039.b"], 0.127404).leading.ebm, "31254");
+eq("Ambulant k1 → 31251 (P1)", ambulant(["5-039.k1"], 0.127404).leading.ebm, "31251");
 
 console.log(`\n${pass} bestanden, ${fail} fehlgeschlagen`);
 process.exit(fail ? 1 : 0);

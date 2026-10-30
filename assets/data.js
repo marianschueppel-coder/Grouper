@@ -70,6 +70,16 @@ export const DRGS = {
     title: "Nicht operativ behandelte Erkrankungen und Verletzungen im Wirbelsäulenbereich, mehr als ein Belegungstag oder andere Femurfraktur" },
   I68F: { mdc: "08", part: "M", rg: 0.231, mvd: 1.0, ugvd: null, ugvdBR: null, ogvd: null, ogvdBR: null, verlBR: null, pflege: 1.1327,
     title: "Nicht operativ behandelte Erkrankungen und Verletzungen im Wirbelsäulenbereich, ein Belegungstag oder Prellung am Oberschenkel" },
+  I23B: { mdc: "08", part: "O", rg: 0.768, mvd: 2.8, ugvd: 1, ugvdBR: 0.188, ogvd: 6, ogvdBR: 0.076, verlBR: 0.080, pflege: 0.9969,
+    title: "Andere kleine Eingriffe an Knochen und Weichteilen mit bestimmten kleinen Eingriffen an Knochen und Weichteilen, Alter > 17 Jahre oder ohne äußerst schwere oder schwere CC" },
+  B09Z: { mdc: "01", part: "O", rg: 0.977, mvd: 4.3, ugvd: 1, ugvdBR: 0.405, ogvd: 10, ogvdBR: 0.079, verlBR: 0.092, pflege: 0.9034,
+    title: "Andere Eingriffe am Schädel" },
+  "801E": { mdc: "24", part: "O", rg: 1.951, mvd: 15.1, ugvd: 4, ugvdBR: 0.286, ogvd: 29, ogvdBR: 0.066, verlBR: 0.089, pflege: 0.8656, wiederaufnahmeAusnahme: true,
+    title: "Ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose ohne komplizierende Konstellation, ohne hochkomplexe, komplexe oder bestimmte OR-Prozedur" },
+  "802C": { mdc: "24", part: "O", rg: 1.672, mvd: 9.2, ugvd: 2, ugvdBR: 0.301, ogvd: 23, ogvdBR: 0.069, verlBR: 0.089, pflege: 0.8951, wiederaufnahmeAusnahme: true,
+    title: "Andere nicht ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose ohne mäßig komplexe OR-Prozedur" },
+  "802D": { mdc: "24", part: "O", rg: 0.983, mvd: 6.4, ugvd: 1, ugvdBR: 0.546, ogvd: 17, ogvdBR: 0.067, verlBR: 0.083, pflege: 0.8844, wiederaufnahmeAusnahme: true,
+    title: "Wenig komplexe nicht ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose" },
   "801C": { mdc: "24", part: "O", rg: 2.901, mvd: 19.1, ugvd: 5, ugvdBR: 0.329, ogvd: 36, ogvdBR: 0.072, verlBR: 0.098, pflege: 1.0098, wiederaufnahmeAusnahme: true,
     title: "Ausgedehnte OR-Prozedur ohne Bezug zur Hauptdiagnose mit komplexer OR-Prozedur" },
   "801D": { mdc: "24", part: "O", rg: 2.512, mvd: 17.2, ugvd: 5, ugvdBR: 0.294, ogvd: 32, ogvdBR: 0.072, verlBR: 0.097, pflege: 0.9600, wiederaufnahmeAusnahme: true,
@@ -78,6 +88,8 @@ export const DRGS = {
 
 // Zusatzentgelte (Mehrkanalstimulatoren)
 export const ZE = {
+  ZE138: { amount: 7726.60, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Einkanalstimulator, mit Sondenimplantation" },
+  ZE139: { amount: 5667.63, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Einkanalstimulator, ohne Sondenimplantation" },
   ZE140: { amount: 12842.81, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Mehrkanalstimulator, nicht wiederaufladbar, mit Sondenimplantation" },
   ZE141: { amount: 10396.50, title: "Neurostimulatoren zur Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Mehrkanalstimulator, nicht wiederaufladbar, ohne Sondenimplantation" },
   "ZE2026-61": { amount: null, title: "Neurostimulatoren zur Hirn- oder Rückenmarkstimulation oder zur Stimulation des peripheren Nervensystems, Mehrkanalstimulator, wiederaufladbar (krankenhausindividuell nach § 6 Abs. 1 KHEntgG)" },
@@ -88,8 +100,12 @@ export const EBM = {
   "31251": { points: 1512, title: "Zentraler neurochirurgischer Eingriff der Kategorie P1" },
   "31252": { points: 2057, title: "Zentraler neurochirurgischer Eingriff der Kategorie P2" },
   "31253": { points: 2754, title: "Zentraler neurochirurgischer Eingriff der Kategorie P3" },
+  "31254": { points: 3583, title: "Zentraler neurochirurgischer Eingriff der Kategorie P4" },
   "31255": { points: 4963, title: "Zentraler neurochirurgischer Eingriff der Kategorie P5" },
   "31256": { points: 6645, title: "Zentraler neurochirurgischer Eingriff der Kategorie P6" },
+  "31504": { points: 694, title: "Postoperative Überwachung 4" },
+  "31505": { points: 977, title: "Postoperative Überwachung 5" },
+  "31506": { points: 1388, title: "Postoperative Überwachung 6" },
   "34503": { points: 667, title: "Bildwandlergestützte Intervention(en) an der Wirbelsäule" },
   "30700": { points: 394, title: "Grundpauschale schmerztherapeutischer Patient (QS-Vereinbarung Schmerztherapie)" },
   "30702": { points: 498, title: "Zusatzpauschale schmerztherapeutische Versorgung (QS-Vereinbarung Schmerztherapie)" },
@@ -153,6 +169,7 @@ add("I70.23", "Atherosklerose der Extremitätenarterien: Becken-Bein-Typ, mit Ru
 add("I70.24", "Atherosklerose der Extremitätenarterien: Becken-Bein-Typ, mit Ulzeration", "PAVK / Angina pectoris", "05");
 add("I70.25", "Atherosklerose der Extremitätenarterien: Becken-Bein-Typ, mit Gangrän", "PAVK / Angina pectoris", "05");
 add("I70.26", "Atherosklerose der Extremitätenarterien: Schulter-Arm-Typ, alle Stadien", "PAVK / Angina pectoris", "05");
+add("I73.9", "Periphere Gefäßkrankheit, nicht näher bezeichnet", "PAVK / Angina pectoris", "05");
 add("I20.1", "Angina pectoris mit nachgewiesenem Koronarspasmus", "PAVK / Angina pectoris", "05");
 add("I20.8", "Sonstige Formen der Angina pectoris", "PAVK / Angina pectoris", "05");
 add("I20.9", "Angina pectoris, nicht näher bezeichnet", "PAVK / Angina pectoris", "05");
@@ -193,6 +210,7 @@ add("T85.1", "Mechanische Komplikation durch einen implantierten elektronischen 
 add("G50.0", "Trigeminusneuralgie", "Weitere (RFA)", "01");
 add("G56.9", "Mononeuropathie der oberen Extremität, nicht näher bezeichnet", "Weitere (RFA)", "01");
 add("G57.6", "Läsion des N. plantaris (Morton-Neuralgie)", "Weitere (RFA)", "01");
+add("G57.8", "Sonstige Mononeuropathien der unteren Extremität", "Weitere (RFA)", "01");
 add("G57.9", "Mononeuropathie der unteren Extremität, nicht näher bezeichnet", "Weitere (RFA)", "01");
 add("M18.1", "Sonstige primäre Rhizarthrose", "Weitere (RFA)", "08");
 add("M20.2", "Hallux rigidus", "Weitere (RFA)", "08");
@@ -207,46 +225,53 @@ export const ICD = icd;
 const ops = [];
 const o = (code, text, group, fam, extra = {}) => ops.push({ code, text, group, fam, ...extra });
 
-// SCS – Elektroden
-o("5-039.32", "Implantation einer temporären Elektrode zur epiduralen Teststimulation", "SCS – Elektroden", "leadTemp", { ebm: "31255" });
+// SCS – Elektroden (Kategorie/EBM/§115b laut KBV Anhang 2 zum EBM, Stand 01.07.2026)
+o("5-039.32", "Implantation einer temporären Elektrode zur epiduralen Teststimulation", "SCS – Elektroden", "leadTemp", { aop: true, ebm: "31255" });
 o("5-039.33", "Implantation mehrerer temporärer Elektroden zur epiduralen Teststimulation", "SCS – Elektroden", "leadTemp", { aop: true, ebm: "31256" });
 o("5-039.34", "Implantation oder Wechsel einer permanenten Elektrode zur epiduralen Dauerstimulation, perkutan", "SCS – Elektroden", "leadPerm", { aop: true, ebm: "31255" });
 o("5-039.35", "Implantation oder Wechsel mehrerer permanenter Elektroden zur epiduralen Dauerstimulation, perkutan", "SCS – Elektroden", "leadPerm", { aop: true, ebm: "31256" });
-o("5-039.36", "Implantation oder Wechsel einer permanenten Elektrode (Plattenelektrode) zur epiduralen Dauerstimulation, offen chirurgisch", "SCS – Elektroden", "leadPerm");
-o("5-039.37", "Implantation oder Wechsel mehrerer permanenter Elektroden (Plattenelektrode) zur epiduralen Dauerstimulation, offen chirurgisch", "SCS – Elektroden", "leadPerm");
+o("5-039.36", "Implantation oder Wechsel einer permanenten Elektrode (Plattenelektrode) zur epiduralen Dauerstimulation, offen chirurgisch", "SCS – Elektroden", "leadPerm", { ebm: "31255" });
+o("5-039.37", "Implantation oder Wechsel mehrerer permanenter Elektroden (Plattenelektrode) zur epiduralen Dauerstimulation, offen chirurgisch", "SCS – Elektroden", "leadPerm", { ebm: "31256" });
+o("5-039.39", "Implantation oder Wechsel einer permanenten Elektrode zur epiduralen Dauerstimulation mit extrakorporalem Neurostimulator", "SCS – Elektroden", "other", { aop: true, ebm: "31255", ambulantOnly: true });
 // SCS – Neurostimulator
 o("5-039.e1", "Implantation oder Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimWithLead", { aop: true, ebm: "31256", ze: "ZE140" });
 o("5-039.e2", "Implantation oder Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "SCS – Neurostimulator", "stimWithLead", { aop: true, ebm: "31256", ze: "ZE2026-61" });
+o("5-039.e0", "Implantation oder Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation mit Implantation oder Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimWithLead", { aop: true, ebm: "31255", ze: "ZE138" });
 o("5-039.n1", "Implantation eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE141" });
 o("5-039.n2", "Implantation eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE2026-61" });
+o("5-039.n0", "Implantation eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Implantation einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE139" });
 o("5-039.f1", "Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE141" });
 o("5-039.f2", "Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE2026-61" });
-o("5-039.n0", "Implantation eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Implantation einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ambulantOnly: true });
+o("5-039.f0", "Wechsel eines Neurostimulators zur epiduralen Rückenmarkstimulation ohne Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "SCS – Neurostimulator", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE139" });
 // SCS – Revision / Entfernung
-o("5-039.b", "Revision von Neurostimulatoren zur epiduralen Rückenmarkstimulation oder zur Vorderwurzelstimulation", "Revision / Entfernung (spinal)", "revStim");
-o("5-039.c0", "Revision von Elektroden: Eine epidurale Stabelektrode", "Revision / Entfernung (spinal)", "revLead");
-o("5-039.c1", "Revision von Elektroden: Mehrere epidurale Stabelektroden", "Revision / Entfernung (spinal)", "revLead");
-o("5-039.c2", "Revision von Elektroden: Eine epidurale Plattenelektrode", "Revision / Entfernung (spinal)", "revLead");
-o("5-039.c3", "Revision von Elektroden: Mehrere epidurale Plattenelektroden", "Revision / Entfernung (spinal)", "revLead");
-o("5-039.a2", "Entfernung von Elektroden: Eine epidurale Stabelektrode", "Revision / Entfernung (spinal)", "removal", { aop: true });
-o("5-039.a3", "Entfernung von Elektroden: Mehrere epidurale Stabelektroden", "Revision / Entfernung (spinal)", "removal", { aop: true });
-o("5-039.a4", "Entfernung von Elektroden: Eine epidurale Plattenelektrode", "Revision / Entfernung (spinal)", "removal");
-o("5-039.a5", "Entfernung von Elektroden: Mehrere epidurale Plattenelektroden", "Revision / Entfernung (spinal)", "removal", { aop: true });
-o("5-039.d", "Entfernung von Neurostimulatoren zur epiduralen Rückenmarkstimulation oder zur Vorderwurzelstimulation", "Revision / Entfernung (spinal)", "removal", { aop: true });
+o("5-039.b", "Revision von Neurostimulatoren zur epiduralen Rückenmarkstimulation oder zur Vorderwurzelstimulation", "Revision / Entfernung (spinal)", "revStim", { ebm: "31254" });
+o("5-039.c0", "Revision von Elektroden: Eine epidurale Stabelektrode", "Revision / Entfernung (spinal)", "revLead", { ebm: "31253" });
+o("5-039.c1", "Revision von Elektroden: Mehrere epidurale Stabelektroden", "Revision / Entfernung (spinal)", "revLead", { ebm: "31254" });
+o("5-039.c2", "Revision von Elektroden: Eine epidurale Plattenelektrode", "Revision / Entfernung (spinal)", "revLead", { ebm: "31253" });
+o("5-039.c3", "Revision von Elektroden: Mehrere epidurale Plattenelektroden", "Revision / Entfernung (spinal)", "revLead", { ebm: "31254" });
+o("5-039.a2", "Entfernung von Elektroden: Eine epidurale Stabelektrode", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31251", rm: "stab" });
+o("5-039.a3", "Entfernung von Elektroden: Mehrere epidurale Stabelektroden", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31252", rm: "stabMulti" });
+o("5-039.a4", "Entfernung von Elektroden: Eine epidurale Plattenelektrode", "Revision / Entfernung (spinal)", "removal", { ebm: "31251", rm: "platte" });
+o("5-039.a5", "Entfernung von Elektroden: Mehrere epidurale Plattenelektroden", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31252", rm: "platteMulti" });
+o("5-039.d", "Entfernung von Neurostimulatoren zur epiduralen Rückenmarkstimulation oder zur Vorderwurzelstimulation", "Revision / Entfernung (spinal)", "removal", { aop: true, ebm: "31254", rm: "ipg" });
+o("5-039.p", "Implantation eines Neurostimulators zur Vorderwurzelstimulation ohne Implantation einer subduralen Elektrode", "Revision / Entfernung (spinal)", "other", { aop: true, ebm: "31252", ambulantOnly: true });
 // DRG-Stimulation (Spinalganglien)
 o("5-039.j0", "Implantation oder Wechsel von Neurostimulationselektroden zur Stimulation von Spinalganglien: Eine Elektrode zur Ganglienstimulation", "Spinalganglien-Stimulation (DRG)", "leadPerm", { ebm: "31252" });
 o("5-039.j1", "Implantation oder Wechsel von Neurostimulationselektroden zur Stimulation von Spinalganglien: Mehrere Elektroden zur Ganglienstimulation", "Spinalganglien-Stimulation (DRG)", "leadPerm", { ebm: "31253" });
-o("5-039.k1", "Implantation oder Wechsel eines Neurostimulators zur Stimulation von Spinalganglien mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimWithLead", { ebm: "31251", ze: "ZE140", needsLead: "j" });
+o("5-039.k1", "Implantation oder Wechsel eines Neurostimulators zur Stimulation von Spinalganglien mit Implantation oder Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimWithLead", { ebm: "31251", ze: "ZE140" });
+o("5-039.k0", "Implantation oder Wechsel eines Neurostimulators zur Stimulation von Spinalganglien mit Implantation oder Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimWithLead", { ebm: "31251", ze: "ZE138" });
 o("5-039.q1", "Implantation eines Neurostimulators zur Stimulation von Spinalganglien ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE141" });
+o("5-039.q0", "Implantation eines Neurostimulators zur Stimulation von Spinalganglien ohne Implantation einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31252", ze: "ZE139" });
 o("5-039.m1", "Wechsel eines Neurostimulators zur Stimulation von Spinalganglien ohne Wechsel einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31251", ze: "ZE141" });
-o("5-039.q0", "Implantation eines Neurostimulators zur Stimulation von Spinalganglien ohne Implantation einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ambulantOnly: true });
-o("5-039.m0", "Wechsel eines Neurostimulators zur Stimulation von Spinalganglien ohne Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ambulantOnly: true });
-o("5-039.c6", "Revision von Elektroden: Spinalganglion, eine Elektrode", "Spinalganglien-Stimulation (DRG)", "revLead");
+o("5-039.m0", "Wechsel eines Neurostimulators zur Stimulation von Spinalganglien ohne Wechsel einer Neurostimulationselektrode: Einkanalstimulator, vollimplantierbar, nicht wiederaufladbar", "Spinalganglien-Stimulation (DRG)", "stimNoLead", { aop: true, ebm: "31251", ze: "ZE139" });
+o("5-039.c6", "Revision von Elektroden: Spinalganglion, eine Elektrode", "Spinalganglien-Stimulation (DRG)", "revLead", { ebm: "31252" });
 o("5-039.c7", "Revision von Elektroden: Spinalganglion, mehrere Elektroden", "Spinalganglien-Stimulation (DRG)", "revLead", { ebm: "31253" });
-o("5-039.p", "Implantation eines Neurostimulators zur Vorderwurzelstimulation ohne Implantation einer subduralen Elektrode", "Revision / Entfernung (spinal)", "other", { aop: true, ambulantOnly: true });
+o("5-039.a8", "Entfernung von Elektroden: Eine Elektrode zur Spinalganglienstimulation", "Spinalganglien-Stimulation (DRG)", "removal", { ebm: "31251", rm: "drg" });
+o("5-039.a9", "Entfernung von Elektroden: Mehrere Elektroden zur Spinalganglienstimulation", "Spinalganglien-Stimulation (DRG)", "removal", { ebm: "31251", rm: "drg" });
+o("5-039.r", "Entfernung eines Neurostimulators zur Spinalganglienstimulation", "Spinalganglien-Stimulation (DRG)", "removal", { ebm: "31251", rm: "drg" });
 // Tiefe Hirnstimulation
 o("5-029.f", "Implantation von Knochenankern zur Vorbereitung auf die stereotaktische Einführung von Stimulationselektroden", "Tiefe Hirnstimulation (THS)", "thsAnchor");
-o("5-029.g", "Entfernung von Knochenankern", "Tiefe Hirnstimulation (THS)", "thsOther");
+o("5-029.g", "Entfernung von Knochenankern", "Tiefe Hirnstimulation (THS)", "thsRemoveLead");
 o("5-014.92", "Implantation oder Wechsel von intrazerebralen Elektroden: Implantation oder Wechsel einer permanenten Elektrode zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsLead");
 o("5-014.93", "Implantation oder Wechsel von intrazerebralen Elektroden: Implantation oder Wechsel mehrerer permanenter Elektroden zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsLead");
 o("5-014.b0", "Revision von intrazerebralen Elektroden: Eine permanente Elektrode zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsRevLead");
@@ -259,8 +284,8 @@ o("5-028.c1", "Implantation eines Neurostimulators zur Hirnstimulation ohne Impl
 o("5-028.c2", "Implantation eines Neurostimulators zur Hirnstimulation ohne Implantation einer Neurostimulationselektrode: Mehrkanalstimulator, vollimplantierbar, mit wiederaufladbarem Akkumulator", "Tiefe Hirnstimulation (THS)", "thsStimNoLead", { ze: "ZE2026-61" });
 o("5-028.3", "Revision eines Neurostimulators zur Hirnstimulation", "Tiefe Hirnstimulation (THS)", "thsRevStim");
 o("5-028.5", "Revision einer permanenten Neurostimulationselektrode zur Dauerstimulation", "Tiefe Hirnstimulation (THS)", "thsRevLead");
-o("5-028.6", "Entfernung eines Neurostimulators zur Hirnstimulation", "Tiefe Hirnstimulation (THS)", "thsOther");
-o("5-028.7", "Entfernung einer Neurostimulationselektrode", "Tiefe Hirnstimulation (THS)", "thsOther");
+o("5-028.6", "Entfernung eines Neurostimulators zur Hirnstimulation", "Tiefe Hirnstimulation (THS)", "thsRemoveStim", { ebm: "31251" });
+o("5-028.7", "Entfernung einer Neurostimulationselektrode", "Tiefe Hirnstimulation (THS)", "thsRemoveLead");
 // Nachkontrolle
 o("8-631.0", "Nachprogrammierung eines implantierten Neurostimulators zur Hirnstimulation", "Nachkontrolle", "followup");
 o("8-631.10", "Nachprogrammierung eines Neurostimulators zur Rückenmarkstimulation: Ohne pharmakologische Anpassung", "Nachkontrolle", "followup");
@@ -306,5 +331,7 @@ export const SOURCES = [
   { label: "vdek: Landesbasisfallwerte 2026 (Stand 28.05.2026)", url: "https://www.vdek.com/vertragspartner/Krankenhaeuser/landesbasisfallwerte.html" },
   { label: "KBV: EBM / Orientierungswert 2026 (12,7404 Cent)", url: "https://www.kbv.de/html/ebm.php" },
   { label: "BfArM: ICD-10-GM und OPS 2026", url: "https://www.bfarm.de/DE/Kodiersysteme/Klassifikationen/_node.html" },
+  { label: "KBV: Anhang 2 zum EBM (OPS → Kategorie/GOP, § 115b-Kennzeichen), Stand 01.07.2026", url: "https://www.kbv.de/praxis/abrechnung/ambulantes-operieren/anhang-2" },
+  { label: "Zusatzentgelte 2026 (ZE138–ZE141, Anlage 2/5)", url: "https://www.drgsystem.de/ze" },
   { label: "DKG: AOP-Katalog nach § 115b SGB V", url: "https://www.dkgev.de/themen/finanzierung-leistungskataloge/ambulante-verguetung/ambulantes-operieren-115b-sgb-v/" },
 ];

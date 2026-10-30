@@ -99,17 +99,20 @@ export function group(input) {
     } else if (has("thsStimNoLead")) {
       drg = "B21B";
       steps.push("Neurostimulator zur Hirnstimulation ohne Elektrodenimplantation (5-028.a_/c_) → B21B");
-    } else if (has("thsRevLead") && has("thsLead")) {
+    } else if (hasCode(/^5-014\.b/) || (has("thsRevLead") && has("thsLead"))) {
       drg = "B20D";
-      steps.push("Revision intrazerebraler Elektroden mit Elektrodenwechsel (5-014.b_/5-028.5 + 5-014.9_) → B20D");
+      steps.push("Revision intrazerebraler Elektroden (5-014.b_ bzw. 5-028.5 mit Elektrodenwechsel) → B20D");
     } else if (has("thsAnchor")) {
       drg = "B20B";
       steps.push("Implantation von Knochenankern zur stereotaktischen Elektrodeneinführung (5-029.f) → B20B");
-    } else if (has("thsRevStim")) {
+    } else if (has("thsRevStim") || has("thsRemoveStim")) {
       drg = "B20E";
-      steps.push("Revision des Neurostimulators ohne Neuanlage (5-028.3) → B20E");
+      steps.push("Revision bzw. Entfernung des Hirnstimulators ohne Neuanlage (5-028.3 / 5-028.6) → B20E");
+    } else if (has("thsRemoveLead")) {
+      drg = "B09Z";
+      steps.push("Entfernung von Elektrode und/oder Knochenankern (5-028.7 / 5-029.g) → B09Z");
     } else {
-      warnings.push("Diese THS-Konstellation (z. B. nur Elektroden, nur Entfernung) ist im Tool nicht abgebildet.");
+      warnings.push("Diese THS-Konstellation (z. B. nur intrazerebrale Elektroden ohne Stimulator) ist im Tool nicht abgebildet.");
     }
     for (const p of thsProcs) if (p.ze && drg) ze.push(p.ze);
     if (drg && !ze.length && (drg === "B21A" || drg === "B21B")) {
@@ -135,16 +138,27 @@ export function group(input) {
       if (anyStim) { drg = "I19A"; steps.push("Implantation/Wechsel eines Neurostimulators → I19A (die Stimulator-Prozedur steuert die DRG, auch bei gleichzeitiger Elektrodenimplantation; der Katalogtitel ist daher missverständlich)"); }
       else if (spinal.leadPerm) { drg = "I19B"; steps.push("Implantation/Wechsel eines permanenten Elektrodensystems ohne Stimulator → I19B"); }
       else if (spinal.leadTemp) {
-        drg = vwd > 1 ? "I10F" : "I10G";
-        steps.push(`Nur temporäre Teststimulationselektrode(n), ${vwd > 1 ? "mehr als ein Belegungstag → I10F" : "ein Belegungstag → I10G"}`);
-        warnings.push("Temporäre Teststimulation: Zuordnung I10F/I10G ist im Tool vereinfacht und kann je nach Konstellation abweichen.");
+        drg = hasCode(/^5-039\.33$/) ? "I10G" : "I10F";
+        steps.push(`Nur temporäre Teststimulationselektrode(n): ${drg === "I10F" ? "eine Elektrode (5-039.32) → I10F" : "mehrere Elektroden (5-039.33) → I10G"}`);
+      } else if (spinal.removal && !spinal.rev) {
+        const rm = new Set(procs.filter((p) => p.fam === "removal").map((p) => p.rm));
+        if (rm.has("platte") || rm.has("platteMulti")) { drg = "I10G"; steps.push("Entfernung epiduraler Plattenelektrode(n) (5-039.a4/.a5) → I10G"); }
+        else if (rm.has("stab") || rm.has("stabMulti")) { drg = "I23B"; steps.push("Entfernung epiduraler Stabelektrode(n) (5-039.a2/.a3, ggf. mit 5-039.d) → I23B"); }
+        else warnings.push("Diese Entfernung (z. B. nur Aggregat 5-039.d oder Spinalganglien-Komponenten) ist im Tool nicht abgebildet.");
       } else {
-        warnings.push("Revision/Entfernung mit Hauptdiagnose aus MDC 08 ist nicht abgebildet. Bei Komplikationen ist i. d. R. T85.1 Hauptdiagnose (→ MDC 01).");
+        warnings.push("Revision mit Hauptdiagnose aus MDC 08 ist nicht abgebildet. Bei mechanischer Komplikation ist i. d. R. T85.1 Hauptdiagnose (→ MDC 01, B19C).");
       }
     } else if (diag.mdc === "05") {
-      if (spinal.leadPerm) { drg = "F21C"; steps.push("OR-Prozedur bei Kreislauferkrankung mit Implantation permanenter Elektroden (mäßig komplexer Eingriff) → F21C"); }
+      if (spinal.leadPerm || spinal.leadTemp) { drg = "F21C"; steps.push("OR-Prozedur bei Kreislauferkrankung mit Implantation (permanenter oder temporärer) Elektroden → F21C"); }
       else if (anyStim) { drg = "F21E"; steps.push("OR-Prozedur bei Kreislauferkrankung, Stimulator ohne Elektrodenimplantation → F21E"); }
-      else { warnings.push("Diese Konstellation mit Hauptdiagnose aus MDC 05 ist nicht abgebildet. Bei Revisionen ist i. d. R. T85.1 Hauptdiagnose."); }
+      else if (spinal.removal && !spinal.rev) {
+        const rm = new Set(procs.filter((p) => p.fam === "removal").map((p) => p.rm));
+        if (rm.has("platte")) { drg = "801E"; steps.push("Entfernung einer Plattenelektrode ohne Bezug zur Hauptdiagnose → 801E"); }
+        else if (rm.has("stabMulti")) { drg = "802C"; steps.push("Entfernung mehrerer Stabelektroden ohne Bezug zur Hauptdiagnose → 802C"); }
+        else if (rm.has("stab")) { drg = "802D"; steps.push("Entfernung einer Stabelektrode ohne Bezug zur Hauptdiagnose → 802D"); }
+        else warnings.push("Diese Entfernung mit Hauptdiagnose aus MDC 05 ist nicht abgebildet.");
+      }
+      else { warnings.push("Revision mit Hauptdiagnose aus MDC 05 ist nicht abgebildet. Bei mechanischer Komplikation ist i. d. R. T85.1 Hauptdiagnose (→ B19C)."); }
     }
     if (drg) for (const p of [...stimWithLead, ...stimNoLead]) if (p.ze) ze.push(p.ze);
     if (rfa.soft || rfa.endo || rfa.facet) warnings.push("Zusätzliche RFA-Prozeduren beeinflussen die Gruppierung hier nicht.");
@@ -233,7 +247,13 @@ export function ambulant(codes, ow) {
   });
   const withEbm = rows.filter((r) => r.euro != null);
   const max = withEbm.length ? withEbm.reduce((a, b) => (b.points > a.points ? b : a)) : null;
-  return { rows, leading: max };
+  let uew = null;
+  if (max) {
+    const cat = Number(max.ebm.slice(-1));
+    const g = cat >= 6 ? "31506" : cat === 5 ? "31505" : "31504";
+    uew = { gop: g, points: EBM[g].points, euro: round2(EBM[g].points * ow), title: EBM[g].title };
+  }
+  return { rows, leading: max, uew };
 }
 
 /**
