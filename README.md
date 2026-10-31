@@ -7,7 +7,7 @@ Kodier- und Erlösrechner für **Neuromodulation** (Rückenmarkstimulation, Spin
 ## Funktionen
 
 - **Stationär:** Hauptdiagnose + OPS wählen → aG-DRG mit Erklärung des Gruppierungswegs, Plausibilitätshinweisen und Erlösschätzung (Basisfallwert je Bundesland, Ab-/Zuschläge nach Grenzverweildauer, Pflegeerlös, ZE140 / ZE141 / ZE2026-61).
-- **Ambulant:** AOP-Fähigkeit und EBM-OP-Leistung inkl. Bewertung in Euro.
+- **Ambulant:** kompletter AOP-/EBM-Abrechnungsfall (OP-Leistung, Simultanzuschlag, Narkose, Überwachung, Nachbehandlung, Pauschalen, 7 % Sachkostenpauschale, Implantatkosten), Kontextfaktoren-Check, Schmerztherapie-/Neurologie-Ziffern und GOÄ-Beispiel für Privatpatienten.
 - **Wiederaufnahme:** vereinfachte Prüfung der Fallzusammenführung nach § 2 FPV 2026.
 - Läuft vollständig im Browser – kein Server, keine Cookies, kein Tracking.
 

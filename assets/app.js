@@ -1,5 +1,5 @@
-import { META, LBFW, DRGS, ZE, ICD, OPS, PRESETS, SOURCES } from "./data.js";
-import { group, calcRevenue, ambulant, checkReadmission, MDC_NAMES } from "./grouper.js";
+import { META, LBFW, DRGS, ZE, ICD, OPS, PRESETS, SOURCES, EBM_SCHMERZ, KONTEXT, GOAE_PRESETS, GOAE_PUNKTWERT } from "./data.js";
+import { group, calcRevenue, ambulantCase, checkReadmission, goaeEuro, MDC_NAMES } from "./grouper.js";
 
 const $ = (s) => document.querySelector(s);
 const eur = (x) => x == null ? "–" : x.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
@@ -17,7 +17,7 @@ function saveSettings(s) {
 }
 const settings = Object.assign({ bfwId: "BUND", bfwCustom: "", pew: META.pflegeentgeltwert, ze61: "", inclPflege: true, ow: META.orientierungswert }, loadSettings());
 
-const state = { hd: "", ops: new Set(), amb: new Set() };
+const state = { hd: "", ops: new Set(), amb: new Set(), ambOff: {}, ambPoints: {}, kontext: new Set(), schmerz: {}, goaePreset: "trial", goae: {} };
 
 // ---------- Tabs ----------
 document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
@@ -153,7 +153,7 @@ function persist() {
 }
 ["#vwd", "#alter", "#bfw-custom", "#pew", "#ze61"].forEach((s) => $(s).addEventListener("input", () => { persist(); compute(); }));
 ["#bfw-select", "#incl-pflege"].forEach((s) => $(s).addEventListener("change", () => { syncBfwCustom(); persist(); compute(); }));
-$("#ow").addEventListener("input", () => { persist(); computeAmb(); });
+$("#ow").addEventListener("input", () => { persist(); computeAmb(); renderSchmerz(); });
 
 // ---------- Mobile Ergebnisleiste ----------
 function setMobileBar(text) {
@@ -248,34 +248,127 @@ function compute() {
 }
 
 // ---------- Ambulant ----------
+$("#kontext").innerHTML = KONTEXT.map((k) => `<label><input type="checkbox" data-k="${k.id}" /> <span>${esc(k.label)}</span></label>`).join("");
+$("#kontext").addEventListener("change", (e) => {
+  const k = e.target.dataset.k; if (!k) return;
+  e.target.checked ? state.kontext.add(k) : state.kontext.delete(k); computeAmb();
+});
+$("#implant").addEventListener("input", computeAmb);
+
 function computeAmb() {
   const out = $("#amb-result");
   if (!state.amb.size) {
-    out.innerHTML = `<div class="result-empty"><p>Prozedur wählen, um AOP-Fähigkeit und EBM-Bewertung zu sehen.</p></div>`;
+    out.innerHTML = `<div class="result-empty"><p>Prozedur wählen, um den ambulanten Abrechnungsfall zu sehen.</p></div>`;
     return;
   }
   const ow = parseFloat($("#ow").value) || META.orientierungswert;
-  const res = ambulant([...state.amb], ow);
-  const rows = res.rows.map((r) => `<tr><td><strong>${r.code}</strong>${r.aop ? ' <span class="tag aop">AOP § 115b</span>' : ""}<span class="sub">${esc(r.text)}</span>
+  const c = ambulantCase([...state.amb], ow, { off: state.ambOff, points: state.ambPoints, implant: parseFloat($("#implant").value) || 0 });
+
+  const allAop = c.rows.length && c.rows.every((r) => r.aop);
+  const someAop = c.rows.some((r) => r.aop);
+  const kontext = state.kontext.size > 0;
+  const pills = [
+    allAop ? `<span class="pill ok">AOP § 115b: ja</span>` : someAop ? `<span class="pill info">AOP § 115b: teilweise</span>` : `<span class="pill no">nicht im AOP-Katalog</span>`,
+    c.leading ? `<span class="pill info">EBM: Kategorie P${c.cat}</span>` : `<span class="pill no">keine EBM-OP-Leistung</span>`,
+    kontext ? `<span class="pill no">Kontextfaktor → stationär begründbar</span>` : "",
+  ].join("");
+
+  let table = "";
+  if (c.leading) {
+    let grp = "";
+    for (const p of c.positions) {
+      if (p.group !== grp) { grp = p.group; table += `<tr class="grp"><td colspan="4">${esc(grp)}</td></tr>`; }
+      const fixed = p.gop === c.leading.ebm;
+      const val = p.euro == null
+        ? `<input class="pts" type="number" min="0" data-pts="${p.gop}" placeholder="Punkte" />`
+        : eur(p.euro);
+      table += `<tr class="${p.on ? "" : "off"}"><td class="cb">${fixed ? "" : `<input type="checkbox" data-pos="${p.gop}" ${p.on ? "checked" : ""} />`}</td>
+        <td class="gop">${p.gop}</td>
+        <td>${esc(p.title)}<span class="sub">${p.points != null ? `${p.points.toLocaleString("de-DE")} Punkte` : p.euro != null ? "Pauschale in Euro" : "<span class='flag'>Punktzahl nicht hinterlegt – bitte eintragen</span>"}${p.note ? " · " + esc(p.note) : ""}</span></td>
+        <td>${val}</td></tr>`;
+    }
+    table += `<tr class="${state.ambOff.sachkosten ? "off" : ""}"><td class="cb"><input type="checkbox" data-pos="sachkosten" ${state.ambOff.sachkosten ? "" : "checked"} /></td><td class="gop">7 %</td>
+      <td>Sachkostenpauschale<span class="sub">7 % des Honorars für allgemeine Sachkosten (§ 11 AOP-Vertrag, nur Krankenhaus)</span></td><td>${eur(c.sachkosten)}</td></tr>`;
+    if (c.implant) table += `<tr><td></td><td class="gop">Impl.</td><td>Implantatkosten<span class="sub">tatsächlich realisierter Preis</span></td><td>${eur(c.implant)}</td></tr>`;
+    table += `<tr class="total"><td></td><td colspan="2">Gesamtbetrag ${c.implant ? "inkl." : "ohne"} Implantate</td><td>${eur(c.gesamt)}</td></tr>`;
+  }
+
+  const rows = c.rows.map((r) => `<tr><td><strong>${r.code}</strong>${r.aop ? ' <span class="tag aop">AOP § 115b</span>' : ""}<span class="sub">${esc(r.text)}</span>
       <span class="sub">${r.ebm ? `EBM-GOP ${r.ebm} · ${r.points.toLocaleString("de-DE")} Punkte` : "keine EBM-OP-Leistung hinterlegt"}</span></td>
       <td>${r.euro != null ? eur(r.euro) : "–"}</td></tr>`).join("");
-  const hasRfa = [...state.amb].some((c) => /^5-8(3a|30|59)/.test(c));
-  const rfaBox = hasRfa ? `
-    <div class="section-title">Radiofrequenzablation beim Vertragsarzt (Beispiel)</div>
-    <table class="calc">
-      ${[["34503", "Bildwandlergestützte Intervention an der Wirbelsäule", 667], ["30700", "Grundpauschale schmerztherapeutischer Patient*", 394], ["30702", "Zusatzpauschale Schmerztherapie*", 498], ["16220", "Neurologisches Gespräch, je 10 Min.", 154]]
-        .map(([g, t, p]) => `<tr><td>GOP ${g}<span class="sub">${t} · ${p} Pkt.</span></td><td>${eur(Math.round(p * ow * 100) / 100)}</td></tr>`).join("")}
-    </table>
-    <p class="muted small">* nur mit Genehmigung nach QS-Vereinbarung Schmerztherapie (§ 135 Abs. 2 SGB V). Punktzahlen ohne Gewähr.</p>` : "";
+  const isThs = [...state.amb].some((x) => /^5-0(14|28|29)/.test(x));
+  const hasRfa = [...state.amb].some((x) => /^5-8(3a|30|59)/.test(x));
 
   out.innerHTML = `
-    ${res.leading ? `<div class="drg-head"><div class="drg-code">${res.leading.ebm}</div><div class="drg-title">Führende OP-Leistung (höchste Bewertung)<br><strong>${eur(res.leading.euro)}</strong> bei ${br(ow, 4)} € je Punkt</div></div>` : `<div class="no-drg">Keine EBM-OP-Leistung hinterlegt</div>`}
-    ${res.uew ? `<table class="calc"><tr><td>Postoperative Überwachung (GOP ${res.uew.gop})<span class="sub">${res.uew.title} · ${res.uew.points.toLocaleString("de-DE")} Punkte · nur bei erbrachtem Leistungsinhalt</span></td><td>${eur(res.uew.euro)}</td></tr><tr class="total"><td>OP-Leistung + Überwachung</td><td>${eur(Math.round((res.leading.euro + res.uew.euro) * 100) / 100)}</td></tr></table>` : ""}
+    <div class="status">${pills}</div>
+    ${c.leading ? `<div class="drg-head"><div class="drg-code">${eur(c.gesamt)}</div><div class="drg-title">Ambulanter Abrechnungsfall (Beispiel)<br>führende OP-Leistung GOP ${c.leading.ebm}</div></div>
+    <table class="calc">${table}</table>` : `<div class="no-drg">Keine EBM-OP-Leistung hinterlegt</div>`}
+    ${c.missing.length ? `<div class="alert warn">Für GOP ${c.missing.join(", ")} ist keine Punktzahl hinterlegt. Bitte aus dem EBM eintragen oder abwählen – sonst fehlt der Betrag in der Summe.</div>` : ""}
+    ${kontext ? `<div class="alert err">Mindestens ein Kontextfaktor liegt vor: Die stationäre Durchführung ist begründbar – Erlös im Reiter „Stationär (aG-DRG)“ berechnen.</div>` : ""}
+    ${isThs ? `<div class="alert info">Tiefe Hirnstimulation: Erstimplantation und Generatorwechsel erfolgen stationär; ambulant ist nur die Entfernung des Hirnstimulators (5-028.6) abgebildet. Für die Programmierung gibt es keine eigene EBM-Ziffer.</div>` : ""}
+    ${hasRfa ? `<div class="alert info">Radiofrequenzablation ist nicht im AOP-Katalog. Beim Vertragsarzt z. B. GOP 34503 (bildwandlergestützte Intervention an der Wirbelsäule, 667 Punkte = ${eur(Math.round(667 * ow * 100) / 100)}) sowie die Schmerztherapie-Pauschalen unten.</div>` : ""}
     <div class="section-title">Prozeduren</div>
     <table class="calc">${rows}</table>
-    <div class="alert info">Bei mehreren Eingriffen in einer Sitzung wird i. d. R. die höchstbewertete OP-Leistung abgerechnet, weitere Eingriffe ggf. über den Simultanzuschlag (GOP 31258). Postoperative Behandlungskomplexe und Anästhesie sind gesondert berechnungsfähig. Zuordnung OPS → Kategorie/GOP laut Anhang 2 zum EBM (Stand 01.07.2026).</div>
-    <div class="alert warn">Implantat-/Sachkosten (Neurostimulator, Elektroden) sind in der OP-Leistung nicht enthalten. Erstattung nach AOP-Vertrag bzw. regionalen Vereinbarungen prüfen.</div>
-    ${rfaBox}`;
+    <div class="alert info">Nur tatsächlich erbrachte Leistungen abrechnen. Zuordnung OPS → Kategorie, Narkose und Nachbehandlung nach Anhang 2 zum EBM. Ohne Implantatkosten handelt es sich um die Vergütung der ärztlichen Leistung.</div>`;
+
+  out.querySelectorAll("input[data-pos]").forEach((cb) => cb.addEventListener("change", () => {
+    cb.checked ? delete state.ambOff[cb.dataset.pos] : (state.ambOff[cb.dataset.pos] = true); computeAmb();
+  }));
+  out.querySelectorAll("input[data-pts]").forEach((inp) => inp.addEventListener("change", () => {
+    state.ambPoints[inp.dataset.pts] = inp.value; computeAmb();
+  }));
+}
+
+// ---------- Schmerztherapie / Neurologie ----------
+function renderSchmerz() {
+  const ow = parseFloat($("#ow").value) || META.orientierungswert;
+  let sum = 0;
+  const rows = EBM_SCHMERZ.map((x) => {
+    const qty = state.schmerz[x.gop] || 0;
+    const euro = Math.round(x.points * ow * 100) / 100;
+    sum += qty * euro;
+    return `<tr class="${qty ? "" : "off"}"><td class="cb">${x.multi
+        ? `<input class="fak" type="number" min="0" max="20" value="${qty}" data-sq="${x.gop}" title="Anzahl" />`
+        : `<input type="checkbox" data-sc="${x.gop}" ${qty ? "checked" : ""} />`}</td>
+      <td class="gop">${x.gop}</td><td>${esc(x.title)}<span class="sub">${x.points} Punkte · ${esc(x.note)}</span></td><td>${eur(euro)}</td></tr>`;
+  }).join("");
+  sum = Math.round(sum * 100) / 100;
+  $("#schmerz").innerHTML = `<table class="calc">${rows}<tr class="total"><td></td><td colspan="2">Summe gewählter Leistungen</td><td>${eur(sum)}</td></tr></table>`;
+  $("#schmerz-sum").textContent = sum ? eur(sum) : "";
+  $("#schmerz").querySelectorAll("[data-sc]").forEach((cb) => cb.addEventListener("change", () => { state.schmerz[cb.dataset.sc] = cb.checked ? 1 : 0; renderSchmerz(); }));
+  $("#schmerz").querySelectorAll("[data-sq]").forEach((i) => i.addEventListener("change", () => { state.schmerz[i.dataset.sq] = Math.max(0, parseInt(i.value, 10) || 0); renderSchmerz(); }));
+}
+
+// ---------- GOÄ ----------
+$("#goae-preset").innerHTML = Object.entries(GOAE_PRESETS).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("");
+$("#goae-preset").addEventListener("change", (e) => { state.goaePreset = e.target.value; state.goae = {}; renderGoae(); });
+function renderGoae() {
+  const items = GOAE_PRESETS[state.goaePreset].items;
+  let sum = 0;
+  const rows = items.map((it, i) => {
+    const st = state.goae[i] || { on: !it.off, faktor: it.faktor };
+    const euro = goaeEuro(it.points, st.faktor, GOAE_PUNKTWERT);
+    if (st.on) sum += euro;
+    const schwelle = it.tech ? 1.8 : 2.3, max = it.tech ? 2.5 : 3.5;
+    const flag = st.faktor > max ? `<span class="flag"> · über Höchstsatz – Honorarvereinbarung nötig</span>` : st.faktor > schwelle ? `<span class="flag"> · Begründung erforderlich</span>` : "";
+    return `<tr class="${st.on ? "" : "off"}"><td class="cb"><input type="checkbox" data-gi="${i}" ${st.on ? "checked" : ""} /></td>
+      <td class="gop">${it.nr}</td><td>${esc(it.title)}<span class="sub">${it.points.toLocaleString("de-DE")} Punkte${it.tech ? " · technische Leistung" : ""}${flag}</span></td>
+      <td class="mid"><input class="fak" type="number" step="0.1" min="1" max="3.5" value="${st.faktor}" data-gf="${i}" title="Steigerungsfaktor" /></td><td>${eur(euro)}</td></tr>`;
+  }).join("");
+  sum = Math.round(sum * 100) / 100;
+  $("#goae").innerHTML = `<table class="calc"><tr class="grp"><td></td><td>Ziffer</td><td>Leistung</td><td class="mid">Faktor</td><td>Betrag</td></tr>${rows}
+    <tr class="total"><td></td><td colspan="3">Summe (ohne Auslagen nach § 10 GOÄ)</td><td>${eur(sum)}</td></tr></table>`;
+  $("#goae-sum").textContent = eur(sum);
+  const get = (i) => (state.goae[i] = state.goae[i] || { on: !items[i].off, faktor: items[i].faktor });
+  $("#goae").querySelectorAll("[data-gi]").forEach((cb) => cb.addEventListener("change", () => {
+    const i = Number(cb.dataset.gi); get(i).on = cb.checked;
+    const alt = items[i].alt && items.findIndex((x) => x.nr === items[i].alt);
+    if (cb.checked && alt >= 0) get(alt).on = false; // 452 und 3055 schließen sich aus
+    renderGoae();
+  }));
+  $("#goae").querySelectorAll("[data-gf]").forEach((inp) => inp.addEventListener("change", () => {
+    get(Number(inp.dataset.gf)).faktor = Math.max(1, parseFloat(inp.value) || 1); renderGoae();
+  }));
 }
 
 // ---------- Wiederaufnahme ----------
@@ -307,4 +400,4 @@ $("#sources").innerHTML = SOURCES.map((s) => `<li><a href="${s.url}" target="_bl
 $("#stand").textContent = META.stand;
 
 // ---------- Init ----------
-renderHdList(); renderHdSelected(); refreshStatOps(); refreshAmbOps(); compute(); computeAmb(); computeWa();
+renderHdList(); renderHdSelected(); refreshStatOps(); refreshAmbOps(); compute(); computeAmb(); renderSchmerz(); renderGoae(); computeWa();

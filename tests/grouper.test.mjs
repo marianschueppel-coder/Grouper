@@ -1,6 +1,6 @@
 // Prüft die Gruppierungslogik gegen veröffentlichte Gruppierungsbeispiele 2026
 // Aufruf: node tests/grouper.test.mjs
-import { group, calcRevenue, checkReadmission, ambulant } from "../assets/grouper.js";
+import { group, calcRevenue, checkReadmission, ambulant, ambulantCase, goaeEuro } from "../assets/grouper.js";
 import { DRGS } from "../assets/data.js";
 
 let pass = 0, fail = 0;
@@ -145,6 +145,28 @@ eq("Ambulant € 31256", amb.leading.euro, 846.6);
 eq("Ambulant Überwachung", amb.uew.gop, "31506");
 eq("Ambulant Revision b → 31254", ambulant(["5-039.b"], 0.127404).leading.ebm, "31254");
 eq("Ambulant k1 → 31251 (P1)", ambulant(["5-039.k1"], 0.127404).leading.ebm, "31251");
+
+// Ambulanter Abrechnungsfall – Vergleich mit Abrechnungsbeispiel (SCS-Aggregat mit Elektroden)
+const ow = 0.127404;
+const c1 = ambulantCase(["5-039.e1", "5-039.35"], ow);
+const gops = c1.positions.map((p) => p.gop);
+eq("AOP Fall e1+35 Positionen", gops, ["16211", "32125", "31256", "31258", "31826", "31506", "31676", "40110", "01602"]);
+const eur = Object.fromEntries(c1.positions.map((p) => [p.gop, p.euro]));
+eq("31826 Narkose 6", eur["31826"], 420.43); eq("31258 Zuschlag", eur["31258"], 96.83); eq("31676", eur["31676"], 38.6);
+eq("16211", eur["16211"], 23.44); eq("01602", eur["01602"], 1.53);
+eq("Sachkosten 7 %", c1.sachkosten, Math.round(c1.honorar * 0.07 * 100) / 100);
+const c2 = ambulantCase(["5-039.n1"], ow);
+eq("AOP Fall n1 ohne Simultanzuschlag", c2.positions.some((p) => p.gop === "31258"), false);
+eq("AOP Fall n1 Narkose 2", c2.positions.find((p) => p.gop === "31822").euro, 171.49);
+eq("AOP Fall n1 Nachbehandlung 31670", c2.positions.find((p) => p.gop === "31670").euro, 10.83);
+const c3 = ambulantCase(["5-039.c7"], ow);
+eq("AOP P3 fehlende Punktzahlen gemeldet", c3.missing.sort(), ["31672", "31823"]);
+eq("AOP manuelle Punktzahl", ambulantCase(["5-039.c7"], ow, { points: { "31823": 2000 } }).positions.find((p) => p.gop === "31823").euro, 254.81);
+eq("Implantat addiert", ambulantCase(["5-039.n1"], ow, { implant: 10000 }).gesamt, Math.round((c2.gesamt + 10000) * 100) / 100);
+// GOÄ
+eq("GOÄ 452 × 2,3", goaeEuro(190, 2.3, 0.0582873), 25.47);
+eq("GOÄ 2570 × 3,5", goaeEuro(4500, 3.5, 0.0582873), 918.02);
+eq("GOÄ 5298", goaeEuro(187.5, 1.0, 0.0582873), 10.93);
 
 console.log(`\n${pass} bestanden, ${fail} fehlgeschlagen`);
 process.exit(fail ? 1 : 0);

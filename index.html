@@ -106,7 +106,7 @@
         <div class="col-input">
           <div class="card">
             <div class="card-head">
-              <h2>Prozeduren (OPS)</h2>
+              <h2><span class="step">1</span> Prozeduren (OPS)</h2>
               <button id="amb-clear" class="link-btn" type="button">Alle abwählen</button>
             </div>
             <div id="amb-selected" class="chips"></div>
@@ -114,21 +114,44 @@
             <div id="amb-list" class="picklist multi"></div>
           </div>
           <div class="card">
-            <h2>Parameter</h2>
+            <h2><span class="step">2</span> Kontextfaktoren (AOP-Vertrag)</h2>
+            <p class="muted small">Liegt mindestens ein Kontextfaktor vor, kann die Leistung stationär erbracht und abgerechnet werden.</p>
+            <div id="kontext" class="checklist"></div>
+          </div>
+          <div class="card">
+            <h2><span class="step">3</span> Parameter</h2>
             <div class="form-grid">
-              <label class="span2">EBM-Punktwert (€ je Punkt)
+              <label>EBM-Punktwert (€ je Punkt)
                 <input id="ow" type="number" step="0.000001" min="0" />
               </label>
+              <label>Implantatkosten (€)
+                <input id="implant" type="number" step="0.01" min="0" placeholder="realisierter Preis" />
+              </label>
             </div>
-            <p class="muted small">Standard: bundeseinheitlicher Orientierungswert 2026. Regionale KV-Punktwerte können abweichen.</p>
+            <p class="muted small">Punktwert: bundeseinheitlicher Orientierungswert 2026, regionale KV-Werte können abweichen. Implantate werden zum tatsächlich realisierten Preis abgerechnet – Rabatte, Boni und Rückvergütungen sind weiterzugeben, Skonto soweit es 3 % übersteigt.</p>
           </div>
         </div>
         <div class="col-result">
           <div class="card result" id="amb-result">
-            <div class="result-empty"><p>Prozedur wählen, um AOP-Fähigkeit und EBM-Bewertung zu sehen.</p></div>
+            <div class="result-empty"><p>Prozedur wählen, um den ambulanten Abrechnungsfall zu sehen.</p></div>
           </div>
         </div>
       </div>
+
+      <details class="card section-acc" id="schmerz-acc">
+        <summary><h2>Besondere Abrechnungsmöglichkeiten: Schmerztherapie &amp; Neurologie (EBM)</h2><span id="schmerz-sum" class="acc-sel"></span></summary>
+        <p class="muted small">Leistungen der Vertragsarztpraxis bzw. Schmerzambulanz, unabhängig vom Eingriff. 30700–30708 nur mit Genehmigung nach der Qualitätssicherungsvereinbarung Schmerztherapie (§ 135 Abs. 2 SGB V) und regelmäßiger Teilnahme an Schmerzkonferenzen.</p>
+        <div id="schmerz"></div>
+      </details>
+
+      <details class="card section-acc" id="goae-acc">
+        <summary><h2>Privatpatienten: GOÄ-Abrechnungsbeispiel Rückenmarkstimulation</h2><span id="goae-sum" class="acc-sel"></span></summary>
+        <div class="form-grid" style="margin-bottom:10px">
+          <label class="span2">Phase <select id="goae-preset"></select></label>
+        </div>
+        <div id="goae"></div>
+        <p class="muted small">Punktwert 5,82873 Cent. Steigerungsfaktor je nach Schwierigkeit und Zeitaufwand anpassen: ärztliche Leistungen 1,0–3,5 (Begründung ab 2,3), technische Leistungen 1,0–2,5 (Begründung ab 1,8). Auslagen und Medikamente über 1,50 € nach § 10 GOÄ zusätzlich. Bei stationärer Behandlung ist die Gebührenminderung nach § 6a GOÄ zu beachten. Analogbewertungen (§ 6 Abs. 2) sind Beispiele ohne Gewähr.</p>
+      </details>
     </section>
 
     <!-- ================= WIEDERAUFNAHME ================= -->
@@ -160,7 +183,7 @@
         <ul>
           <li>Ordnet typische Konstellationen der <strong>Rückenmarkstimulation (SCS)</strong>, <strong>Spinalganglienstimulation (DRG)</strong>, <strong>Tiefen Hirnstimulation (THS)</strong> und <strong>Radiofrequenzablation</strong> einer aG-DRG 2026 zu – regelbasiert und mit Erklärung des Gruppierungswegs.</li>
           <li>Berechnet den Erlös nach Fallpauschalenvereinbarung: Bewertungsrelation × Basisfallwert, Abschläge unter der unteren bzw. Zuschläge über der oberen Grenzverweildauer, tagesbezogener Pflegeerlös und Zusatzentgelte (ZE140, ZE141, ZE2026-61).</li>
-          <li>Zeigt für ambulante Eingriffe die AOP-Fähigkeit (§ 115b SGB V) und die EBM-OP-Leistung mit Bewertung.</li>
+          <li>Stellt für ambulante Eingriffe einen vollständigen Abrechnungsfall nach AOP (§ 115b SGB V) bzw. EBM zusammen, prüft Kontextfaktoren und zeigt Schmerztherapie-Ziffern sowie ein GOÄ-Beispiel für Privatpatienten.</li>
           <li>Prüft vereinfacht, ob zwei Aufenthalte nach § 2 FPV zusammenzuführen sind.</li>
         </ul>
         <h2>Grenzen</h2>

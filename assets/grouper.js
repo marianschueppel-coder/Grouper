@@ -2,7 +2,7 @@
 // KEIN zertifizierter Grouper. Bildet nur die hier hinterlegten Konstellationen
 // bei PCCL 0 ab (keine Nebendiagnosen, keine Altersverzweigungen < 18 Jahre).
 
-import { DRGS, ZE, ICD, OPS, EBM } from "./data.js";
+import { DRGS, ZE, ICD, OPS, EBM, EBM_AMB, AMB_BY_CAT, SACHKOSTEN_PAUSCHALE } from "./data.js";
 
 const icdMap = Object.fromEntries(ICD.map((i) => [i.code, i]));
 const opsMap = Object.fromEntries(OPS.map((p) => [p.code, p]));
@@ -291,3 +291,46 @@ export function checkReadmission({ drg1, drg2, tage, komplikation }) {
   steps.push("Keine Voraussetzung erfüllt → zwei getrennte Fälle");
   return { merge: false, steps };
 }
+
+/**
+ * Vollständiger ambulanter Abrechnungsfall (AOP § 115b / EBM)
+ * @param {string[]} codes OPS-Kodes
+ * @param {number} ow Punktwert in Euro
+ * @param {{off?:Object, points?:Object, implant?:number}} o off = abgewählte Positionen, points = manuell eingetragene Punktzahlen
+ */
+export function ambulantCase(codes, ow, o = {}) {
+  const off = o.off || {}, manual = o.points || {};
+  const base = ambulant(codes, ow);
+  if (!base.leading) return { ...base, positions: [], honorar: 0, sachkosten: 0, pauschalen: 0, implant: 0, gesamt: 0, missing: [] };
+  const cat = Number(base.leading.ebm.slice(-1));
+  const map = AMB_BY_CAT[cat];
+  const opCodes = new Set(base.rows.filter((r) => r.ebm).map((r) => r.code));
+  const pos = [];
+  const add = (gop, group, title, points, euro, note) => pos.push({ gop, group, title, points, euro, note, on: !off[gop] });
+  const fromTable = (gop, group, note) => {
+    const d = EBM_AMB[gop];
+    const pts = manual[gop] != null && manual[gop] !== "" ? Number(manual[gop]) : d.points;
+    add(gop, group || d.group, d.title, d.euro != null ? null : pts, d.euro != null ? d.euro : (pts != null ? round2(pts * ow) : null), note);
+  };
+  fromTable("16211", null, "Alters-/fachgruppenabhängig – passende Grundpauschale wählen");
+  fromTable("32125");
+  add(base.leading.ebm, "Operation", `${EBM[base.leading.ebm].title} (führende OP-Leistung, ${base.leading.code})`, base.leading.points, base.leading.euro);
+  if (opCodes.size > 1) fromTable("31258", null, "Simultaneingriff: mehrere OP-Prozeduren in einer Sitzung");
+  fromTable(map.anae, null, "Nur wenn Anästhesie erbracht wird (i. d. R. durch Anästhesie abgerechnet)");
+  if (base.uew) add(base.uew.gop, "Nachsorge", base.uew.title, base.uew.points, base.uew.euro, "Nur bei erbrachtem Leistungsinhalt");
+  fromTable(map.nachOp, "Nachsorge", `Durch den Operateur; bei Überweisung stattdessen GOP ${map.nachUeb}`);
+  fromTable("40110");
+  fromTable("01602");
+
+  const active = pos.filter((p) => p.on);
+  const honorar = round2(active.filter((p) => p.points != null).reduce((a, p) => a + (p.euro || 0), 0));
+  const pauschalen = round2(active.filter((p) => p.points == null && p.euro != null).reduce((a, p) => a + p.euro, 0));
+  const sachkosten = off.sachkosten ? 0 : round2(honorar * SACHKOSTEN_PAUSCHALE);
+  const implant = Math.max(0, Number(o.implant) || 0);
+  const missing = active.filter((p) => p.euro == null).map((p) => p.gop);
+  return { ...base, cat, positions: pos, honorar, pauschalen, sachkosten, implant, missing,
+    gesamt: round2(honorar + pauschalen + sachkosten + implant) };
+}
+
+/** GOÄ-Betrag einer Position */
+export const goaeEuro = (points, faktor, punktwert) => round2(points * faktor * punktwert);

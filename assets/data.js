@@ -335,3 +335,109 @@ export const SOURCES = [
   { label: "Zusatzentgelte 2026 (ZE138–ZE141, Anlage 2/5)", url: "https://www.drgsystem.de/ze" },
   { label: "DKG: AOP-Katalog nach § 115b SGB V", url: "https://www.dkgev.de/themen/finanzierung-leistungskataloge/ambulante-verguetung/ambulantes-operieren-115b-sgb-v/" },
 ];
+
+// ---------------------------------------------------------------------------
+// Ambulante Abrechnung (AOP § 115b / EBM) – Zusatzpositionen
+// Punktzahlen: öffentliche EBM-Werte bzw. aus Euro-Beträgen bei 12,7404 Cent rückgerechnet.
+// points: null = Bewertung nicht hinterlegt → im Tool eintragbar
+// ---------------------------------------------------------------------------
+export const EBM_AMB = {
+  "16211": { points: 184, title: "Grundpauschale Neurologie, 6. bis 59. Lebensjahr", group: "Vorbereitung" },
+  "32125": { euro: 1.41, title: "Präoperative Labordiagnostik", group: "Vorbereitung" },
+  "31258": { points: 760, title: "Zuschlag zu den GOP 31251 bis 31257 bei Simultaneingriffen", group: "Operation" },
+  "31821": { points: null, title: "Anästhesie oder Narkose 1", group: "Operation" },
+  "31822": { points: 1346, title: "Anästhesie oder Narkose 2", group: "Operation" },
+  "31823": { points: null, title: "Anästhesie oder Narkose 3", group: "Operation" },
+  "31824": { points: null, title: "Anästhesie oder Narkose 4", group: "Operation" },
+  "31825": { points: null, title: "Anästhesie oder Narkose 5", group: "Operation" },
+  "31826": { points: 3300, title: "Anästhesie oder Narkose 6", group: "Operation" },
+  "31669": { points: null, title: "Postoperative Behandlung (Überweisung), Kategorie P1/P2", group: "Nachsorge" },
+  "31670": { points: 85, title: "Postoperative Behandlung (Operateur), Kategorie P1/P2", group: "Nachsorge" },
+  "31671": { points: null, title: "Postoperative Behandlung (Überweisung), Kategorie P3", group: "Nachsorge" },
+  "31672": { points: null, title: "Postoperative Behandlung (Operateur), Kategorie P3", group: "Nachsorge" },
+  "31673": { points: null, title: "Postoperative Behandlung (Überweisung), Kategorie P4/P5", group: "Nachsorge" },
+  "31674": { points: null, title: "Postoperative Behandlung (Operateur), Kategorie P4/P5", group: "Nachsorge" },
+  "31675": { points: null, title: "Postoperative Behandlung (Überweisung), Kategorie P6", group: "Nachsorge" },
+  "31676": { points: 303, title: "Postoperative Behandlung (Operateur), Kategorie P6", group: "Nachsorge" },
+  "40110": { euro: 0.96, title: "Kostenpauschale Versand/Transport von Briefen und schriftlichen Unterlagen", group: "Nachsorge" },
+  "01602": { points: 12, title: "Mehrfertigung (z. B. Kopie eines Berichts an Hausärztin/Hausarzt)", group: "Nachsorge" },
+};
+// OP-Kategorie (P1–P6) → Anästhesie- und Nachbehandlungs-GOP (Anhang 2 EBM)
+export const AMB_BY_CAT = {
+  1: { anae: "31821", nachUeb: "31669", nachOp: "31670" },
+  2: { anae: "31822", nachUeb: "31669", nachOp: "31670" },
+  3: { anae: "31823", nachUeb: "31671", nachOp: "31672" },
+  4: { anae: "31824", nachUeb: "31673", nachOp: "31674" },
+  5: { anae: "31825", nachUeb: "31673", nachOp: "31674" },
+  6: { anae: "31826", nachUeb: "31675", nachOp: "31676" },
+};
+export const SACHKOSTEN_PAUSCHALE = 0.07; // § 11 AOP-Vertrag: 7 % des Honorars für allgemeine Sachkosten
+
+// Besondere Abrechnungsmöglichkeiten (Vertragsarzt / Schmerzambulanz)
+export const EBM_SCHMERZ = [
+  { gop: "30700", points: 394, title: "Grundpauschale schmerztherapeutischer Patient", note: "QS-Genehmigung, 1× je Quartal, nicht neben anderen Grundpauschalen" },
+  { gop: "30702", points: 498, title: "Zusatzpauschale schmerztherapeutische Versorgung chronisch Schmerzkranker", note: "QS-Genehmigung" },
+  { gop: "30706", points: 86, title: "Teilnahme an multidisziplinärer schmerztherapeutischer Fallkonferenz", note: "QS-Genehmigung" },
+  { gop: "30708", points: 169, title: "Beratung und Erörterung im Rahmen der Schmerztherapie, je 10 Minuten", note: "QS-Genehmigung", multi: true },
+  { gop: "16220", points: 154, title: "Neurologisches Gespräch, Behandlung, Beratung, Erörterung und/oder Abklärung", note: "1× je Quartal" },
+  { gop: "16222", points: 136, title: "Zuschlag zu 16220 bei schweren neuropsychologischen/verhaltensneurologischen Störungen", note: "1× je Quartal" },
+  { gop: "16225", points: 199, title: "Überprüfung einer Duodenal-DOPA-Pumpe bei Parkinsonpatienten", note: "1× je Quartal" },
+  { gop: "16230", points: 377, title: "Zusatzpauschale kontinuierliche Mitbetreuung ZNS/PNS-Erkrankung, häusliche Umgebung (≥ 2 Kontakte)", note: "1× je Quartal" },
+  { gop: "16231", points: 212, title: "Zusatzpauschale kontinuierliche Mitbetreuung, beschützende Einrichtung/Pflegeheim", note: "1× je Quartal, nicht neben 16232" },
+  { gop: "16232", points: 185, title: "Diagnostik/Behandlung von Erkrankungen der Wirbelsäule (≥ 2 Kontakte)", note: "1× je Quartal, nicht neben 16231" },
+  { gop: "16233", points: 340, title: "Zusatzpauschale Mitbetreuung ZNS/PNS-Erkrankung, häusliche Umgebung (1 Kontakt ≥ 15 Min.)", note: "1× je Quartal" },
+];
+
+// AOP-Kontextfaktoren (Anlage 2 AOP-Vertrag) – Auswahl
+export const KONTEXT = [
+  { id: "pg", label: "Pflegegrad 4 oder 5" },
+  { id: "u50", label: "Schwere/sehr schwere motorische Funktionseinschränkung (U50.40, U50.41, U50.50, U50.51)" },
+  { id: "u51", label: "Schwere kognitive Funktionseinschränkung (U51.20, U51.21, U51.22)" },
+  { id: "beat", label: "Beatmung" },
+  { id: "alter", label: "Alter unter 1 Jahr" },
+  { id: "icd", label: "Diagnose aus der Kontextfaktoren-Liste (z. B. Embolie/Thrombose I74.3)" },
+  { id: "ops", label: "Begleitende OPS-Prozedur aus der Kontextfaktoren-Liste" },
+];
+
+// GOÄ (PKV) – Beispiel Rückenmarkstimulation, Punktwert 5,82873 Cent
+export const GOAE_PUNKTWERT = 0.0582873;
+const g = (nr, points, faktor, title, tech = false, extra = {}) => ({ nr, points, faktor, title, tech, ...extra });
+export const GOAE_PRESETS = {
+  trial: { label: "Testphase (Elektrodenimplantation)", items: [
+    g("452", 190, 2.3, "Intravenöse Narkose (mehrmalige Verabreichung des Narkotikums)", false, { alt: "3055" }),
+    g("3055", 554, 2.3, "Überwachung einer assistierenden Zirkulation, je angefangene Stunde (alternativ zu 452 bei Implantation < 1 h)", false, { alt: "452", off: true }),
+    g("427", 150, 2.3, "Assistierte und/oder kontrollierte apparative Beatmung, bis 12 Stunden"),
+    g("602", 152, 1.8, "Oxymetrische Untersuchung(en)", true),
+    g("272", 180, 2.3, "Infusion, intravenös, > 30 Minuten"),
+    g("491", 121, 3.5, "Infiltrationsanästhesie großer Bezirke (erhöhter Aufwand durch Mehrfachapplikation)"),
+    g("261", 30, 2.3, "Einbringung von Arzneimitteln in einen parenteralen Katheter"),
+    g("5295", 240, 2.5, "Durchleuchtung(en) als selbständige Leistung (intraoperativ, steril)", true),
+    g("301", 160, 2.3, "Punktion eines Ellenbogen-, Knie- oder Wirbelgelenks"),
+    g("2570", 4500, 3.5, "Implantation von Reizelektroden zur Dauerstimulation des Rückenmarks (erhöhter Aufwand bei Voroperation)"),
+    g("340", 400, 2.3, "Einbringung des Kontrastmittels in die zerebralen und spinalen Liquorräume"),
+    g("5280", 750, 1.8, "Myelographie", true),
+    g("5298", 187.5, 1.0, "Zuschlag digitale Radiographie (25 % des einfachen Satzes von 5280)", true),
+    g("839", 700, 2.3, "Analog § 6 Abs. 2: Neuprogrammierung des Stimulators (nach EMG + NLG)"),
+    g("828", 605, 3.5, "Analog § 6 Abs. 2: Einstellung des Stimulators (nach evozierten Potentialen), mehrfache Teststimulationen"),
+    g("800", 195, 2.3, "Eingehende neurologische Untersuchung"),
+    g("661", 530, 1.8, "Impulsanalyse und EKG zur Überwachung eines implantierten Schrittmachers (Teststimulation)", true),
+  ] },
+  ipg: { label: "Implantation des Neurostimulators", items: [
+    g("452", 190, 2.3, "Intravenöse Narkose (mehrmalige Verabreichung des Narkotikums)", false, { alt: "3055" }),
+    g("3055", 554, 2.3, "Überwachung einer assistierenden Zirkulation, je angefangene Stunde (alternativ zu 452 bei Implantation < 1 h)", false, { alt: "452", off: true }),
+    g("427", 150, 2.3, "Assistierte und/oder kontrollierte apparative Beatmung, bis 12 Stunden"),
+    g("602", 152, 1.8, "Oxymetrische Untersuchung(en)", true),
+    g("261", 30, 2.3, "Einbringung von Arzneimitteln in einen parenteralen Katheter"),
+    g("491", 121, 3.5, "Infiltrationsanästhesie großer Bezirke (erhöhter Aufwand durch Mehrfachapplikation)"),
+    g("5295", 240, 2.5, "Durchleuchtung(en) als selbständige Leistung (intraoperativ, steril)", true),
+    g("2010", 379, 3.5, "Entfernung eines tiefsitzenden Fremdkörpers auf operativem Wege aus Weichteilen und/oder Knochen"),
+    g("301", 160, 2.3, "Punktion eines Ellenbogen-, Knie- oder Wirbelgelenks"),
+    g("2570", 4500, 3.5, "Implantation von Reizelektroden zur Dauerstimulation des Rückenmarks ggf. einschl. Empfangsgerät (erhöhter Aufwand durch Vernarbungen)"),
+    g("340", 400, 2.3, "Einbringung des Kontrastmittels in die zerebralen und spinalen Liquorräume"),
+    g("5280", 750, 1.8, "Myelographie", true),
+    g("5298", 187.5, 1.0, "Zuschlag digitale Radiographie (25 % des einfachen Satzes von 5280)", true),
+    g("839", 700, 2.3, "Analog § 6 Abs. 2: Neuprogrammierung des Stimulators (nach EMG + NLG)"),
+    g("828", 605, 3.5, "Analog § 6 Abs. 2: Einstellung des Stimulators (nach evozierten Potentialen)"),
+    g("800", 195, 2.3, "Eingehende neurologische Untersuchung"),
+  ] },
+};
